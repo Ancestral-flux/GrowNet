@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GrowNet - Network That Helps Farmers Grow</title>
+    <title>GrowNet - Agricultural Marketplace</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -84,6 +84,47 @@
         
         nav a:hover {
             color: var(--primary);
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .search-box {
+            display: flex;
+            background: #f5f5f5;
+            border-radius: 20px;
+            padding: 5px 15px;
+        }
+        
+        .search-box input {
+            border: none;
+            background: transparent;
+            outline: none;
+            width: 200px;
+        }
+        
+        .cart-icon {
+            position: relative;
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+        
+        .cart-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--secondary);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .cta-button {
@@ -167,10 +208,42 @@
             padding: 0 15px;
         }
         
-        /* Features Section */
-        .features {
-            padding: 60px 0;
+        /* Categories Section */
+        .categories {
+            padding: 40px 0;
             background-color: var(--white);
+        }
+        
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .category-card {
+            background: var(--light);
+            border-radius: 8px;
+            padding: 20px 10px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .category-card i {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        /* Products Section */
+        .products {
+            padding: 60px 0;
+            background-color: var(--light);
         }
         
         .section-title {
@@ -191,73 +264,212 @@
             padding: 0 15px;
         }
         
-        .features-grid {
+        .products-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 25px;
         }
         
-        .feature-card {
+        .product-card {
             background-color: var(--white);
             border-radius: 8px;
-            padding: 25px;
+            overflow: hidden;
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            text-align: center;
             transition: transform 0.3s;
-            border: 1px solid #eee;
         }
         
-        .feature-card:hover {
+        .product-card:hover {
             transform: translateY(-5px);
         }
         
-        .feature-icon {
-            font-size: 2.2rem;
+        .product-image {
+            height: 200px;
+            width: 100%;
+            object-fit: cover;
+        }
+        
+        .product-info {
+            padding: 20px;
+        }
+        
+        .product-title {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+        
+        .product-description {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        
+        .product-price {
+            font-size: 1.2rem;
+            font-weight: 600;
             color: var(--primary);
             margin-bottom: 15px;
         }
         
-        .feature-card h3 {
-            font-size: 1.3rem;
-            margin-bottom: 15px;
-            color: var(--dark);
+        .product-actions {
+            display: flex;
+            gap: 10px;
         }
         
-        /* How It Works */
-        .how-it-works {
-            padding: 60px 0;
-            background-color: var(--light);
-        }
-        
-        .steps {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px;
-        }
-        
-        .step {
-            text-align: center;
-            padding: 25px 15px;
-            background-color: var(--white);
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
-        
-        .step-number {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            background-color: var(--primary);
+        .add-to-cart {
+            flex: 1;
+            background: var(--primary);
             color: white;
-            border-radius: 50%;
-            line-height: 40px;
-            margin-bottom: 15px;
-            font-weight: bold;
+            border: none;
+            padding: 8px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
         }
         
-        .step h3 {
+        .add-to-cart:hover {
+            background: var(--dark);
+        }
+        
+        .buy-now {
+            flex: 1;
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .buy-now:hover {
+            background: #e68900;
+        }
+        
+        /* Cart Sidebar */
+        .cart-sidebar {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 100%;
+            max-width: 400px;
+            height: 100vh;
+            background: white;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+            z-index: 1000;
+            transition: right 0.3s;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .cart-sidebar.active {
+            right: 0;
+        }
+        
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .close-cart {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .cart-items {
+            margin-bottom: 20px;
+        }
+        
+        .cart-item {
+            display: flex;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .cart-item-image {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        
+        .cart-item-details {
+            flex: 1;
+        }
+        
+        .cart-item-title {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .cart-item-price {
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .cart-item-quantity {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .quantity-btn {
+            width: 25px;
+            height: 25px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .cart-total {
+            padding: 20px 0;
+            border-top: 1px solid #eee;
             font-size: 1.2rem;
-            margin-bottom: 10px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .checkout-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .checkout-btn:hover {
+            background: var(--dark);
+        }
+        
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        
+        .overlay.active {
+            display: block;
         }
         
         /* Payment Section */
@@ -299,27 +511,6 @@
             border: 1px solid #ddd;
             border-radius: 5px;
             font-size: 1rem;
-        }
-        
-        .payment-options {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        .payment-option {
-            text-align: center;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .payment-option.active {
-            border-color: var(--primary);
-            background-color: rgba(46, 125, 50, 0.1);
         }
         
         /* Testimonials */
@@ -450,112 +641,13 @@
             color: #ccc;
         }
         
-        /* Payment Modal */
-        .payment-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .payment-modal.active {
-            display: flex;
-        }
-        
-        .modal-content {
-            background-color: white;
-            padding: 30px;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 500px;
-            text-align: center;
-            box-shadow: 0 5px 25px rgba(0,0,0,0.2);
-        }
-        
-        .modal-content h3 {
-            margin-bottom: 20px;
-            color: var(--primary);
-        }
-        
-        .modal-buttons {
-            display: flex;
-            gap: 15px;
-            margin-top: 25px;
-            justify-content: center;
-        }
-        
-        .modal-buttons button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-        
-        .btn-primary {
-            background-color: var(--primary);
-            color: white;
-        }
-        
-        .btn-secondary {
-            background-color: #eee;
-            color: #333;
-        }
-        
-        /* Fixed Price Banner */
-        .fixed-price-banner {
-            background-color: var(--secondary);
-            color: white;
-            text-align: center;
-            padding: 10px;
-            font-weight: 600;
-            margin-bottom: 20px;
-            border-radius: 5px;
-        }
-        
-        /* Payment Status Styles */
-        .payment-status {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 5px;
-            text-align: center;
-            display: none;
-        }
-        
-        .payment-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .payment-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .test-cards {
-            background-color: #fff3cd;
-            border: 1px solid #ffeaa7;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
-        
         /* Responsive */
         @media (max-width: 768px) {
             .header-container {
                 flex-wrap: wrap;
             }
             
-            nav {
+            nav, .search-box {
                 display: none;
             }
             
@@ -571,12 +663,8 @@
                 font-size: 1rem;
             }
             
-            .payment-options {
-                grid-template-columns: 1fr;
-            }
-            
-            .modal-buttons {
-                flex-direction: column;
+            .cart-sidebar {
+                max-width: 100%;
             }
         }
         
@@ -602,13 +690,23 @@
             <nav>
                 <ul>
                     <li><a href="#home">Home</a></li>
-                    <li><a href="#features">Features</a></li>
+                    <li><a href="#products">Products</a></li>
                     <li><a href="#how-it-works">How It Works</a></li>
                     <li><a href="#payment">Payment</a></li>
                     <li><a href="#testimonials">Testimonials</a></li>
                 </ul>
             </nav>
-            <button class="cta-button" id="joinNowBtn">Join Now</button>
+            <div class="header-actions">
+                <div class="search-box">
+                    <input type="text" placeholder="Search products...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="cart-icon" id="cartIcon">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </div>
+                <button class="cta-button" id="joinNowBtn">Join Now</button>
+            </div>
             <button class="mobile-menu-btn" id="mobileMenuBtn">
                 <i class="fas fa-bars"></i>
             </button>
@@ -616,7 +714,7 @@
         <div class="mobile-nav" id="mobileNav">
             <ul>
                 <li><a href="#home">Home</a></li>
-                <li><a href="#features">Features</a></li>
+                <li><a href="#products">Products</a></li>
                 <li><a href="#how-it-works">How It Works</a></li>
                 <li><a href="#payment">Payment</a></li>
                 <li><a href="#testimonials">Testimonials</a></li>
@@ -628,48 +726,49 @@
     <!-- Hero Section -->
     <section class="hero" id="home">
         <div class="container">
-            <h2>Connecting Farmers and Buyers</h2>
-            <p>GrowNet helps farmers reduce post-harvest losses by connecting them directly with buyers. List your crops early and secure sales before harvest time.</p>
-            <button class="cta-button" id="getStartedBtn">Get Started</button>
+            <h2>Fresh Farm Products Direct to You</h2>
+            <p>GrowNet connects you directly with farmers for the freshest agricultural products at the best prices.</p>
+            <button class="cta-button" id="getStartedBtn">Shop Now</button>
         </div>
     </section>
 
-    <!-- Features Section -->
-    <section class="features" id="features">
+    <!-- Categories Section -->
+    <section class="categories">
+        <div class="container">
+            <div class="categories-grid">
+                <div class="category-card">
+                    <i class="fas fa-wheat-alt"></i>
+                    <h3>Grains</h3>
+                </div>
+                <div class="category-card">
+                    <i class="fas fa-apple-alt"></i>
+                    <h3>Fruits</h3>
+                </div>
+                <div class="category-card">
+                    <i class="fas fa-carrot"></i>
+                    <h3>Vegetables</h3>
+                </div>
+                <div class="category-card">
+                    <i class="fas fa-seedling"></i>
+                    <h3>Seeds</h3>
+                </div>
+                <div class="category-card">
+                    <i class="fas fa-wine-bottle"></i>
+                    <h3>Processed</h3>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Products Section -->
+    <section class="products" id="products">
         <div class="container">
             <div class="section-title">
-                <h2>Our Features</h2>
-                <p>GrowNet provides a comprehensive platform to connect farmers with buyers and streamline the agricultural supply chain.</p>
+                <h2>Featured Products</h2>
+                <p>Fresh from our partner farms to your table</p>
             </div>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-seedling"></i>
-                    </div>
-                    <h3>Early Crop Listing</h3>
-                    <p>Farmers can list their crops immediately after planting, giving buyers early visibility and securing sales in advance.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-search-dollar"></i>
-                    </div>
-                    <h3>Buyer Matching</h3>
-                    <p>Our intelligent system matches farmers with the most suitable buyers based on product type, location, and pricing.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-money-bill-wave"></i>
-                    </div>
-                    <h3>Secure Payments</h3>
-                    <p>Integrated with Interswitch for secure, reliable payment processing with multiple payment options.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-truck"></i>
-                    </div>
-                    <h3>Logistics Support</h3>
-                    <p>We help coordinate transportation and delivery logistics to ensure products reach buyers in optimal condition.</p>
-                </div>
+            <div class="products-grid" id="productsGrid">
+                <!-- Products will be loaded here by JavaScript -->
             </div>
         </div>
     </section>
@@ -701,98 +800,6 @@
                     <div class="step-number">4</div>
                     <h3>Delivery & Feedback</h3>
                     <p>Products are delivered and both parties provide feedback on the experience.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Payment Section -->
-    <section class="payment-section" id="payment">
-        <div class="container">
-            <div class="section-title">
-                <h2>Secure Payment Processing</h2>
-                <p>Powered by Interswitch for safe and reliable transactions</p>
-            </div>
-            
-            <!-- Test Cards Information -->
-            <div class="test-cards">
-                <h4><i class="fas fa-info-circle"></i> Test Payment Information</h4>
-                <p>Use these test cards for demonstration:</p>
-                <ul>
-                    <li><strong>Card:</strong> 5061 0606 0606 0606 060</li>
-                    <li><strong>Expiry:</strong> Any future date (e.g., 12/2025)</li>
-                    <li><strong>CVV:</strong> 123</li>
-                    <li><strong>PIN:</strong> 1234</li>
-                    <li><strong>OTP:</strong> 123456</li>
-                </ul>
-                <p><small>These are Interswitch test cards that work in TEST mode</small></p>
-            </div>
-            
-            <div class="payment-container">
-                <div class="payment-info">
-                    <h3>Multiple Payment Options</h3>
-                    <p>GrowNet integrates with Interswitch to provide farmers and buyers with multiple secure payment options:</p>
-                    <ul style="margin-top: 20px; margin-left: 20px;">
-                        <li>Credit/Debit Cards</li>
-                        <li>Bank Transfers</li>
-                        <li>USSD Payments</li>
-                        <li>Mobile Wallets</li>
-                        <li>Google Pay</li>
-                    </ul>
-                    <p style="margin-top: 20px;">Our payment system ensures that transactions are secure and farmers receive payments promptly after successful delivery.</p>
-                    <div class="fixed-price-banner">
-                        <i class="fas fa-tag"></i> All Products: Fixed Price of ₦100
-                    </div>
-                </div>
-                <div class="payment-form">
-                    <h3 style="margin-bottom: 20px;">Make a Payment</h3>
-                    <div class="form-group">
-                        <label for="product">Select Product</label>
-                        <select id="product">
-                            <option value="">-- Choose a product --</option>
-                            <option value="maize">Maize - ₦100 per unit</option>
-                            <option value="rice">Rice - ₦100 per unit</option>
-                            <option value="tomatoes">Tomatoes - ₦100 per unit</option>
-                            <option value="beans">Beans - ₦100 per unit</option>
-                            <option value="cassava">Cassava - ₦100 per unit</option>
-                            <option value="yam">Yam - ₦100 per unit</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="quantity">Quantity</label>
-                        <input type="number" id="quantity" min="1" value="1">
-                    </div>
-                    <div class="form-group">
-                        <label for="amount">Amount (₦)</label>
-                        <input type="text" id="amount" readonly value="100">
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Email Address</label>
-                        <input type="email" id="email" placeholder="Your email address" value="test@example.com">
-                    </div>
-                    <div class="form-group">
-                        <label for="name">Full Name</label>
-                        <input type="text" id="name" placeholder="Your full name" value="Test Customer">
-                    </div>
-                    <div class="payment-options">
-                        <div class="payment-option active" id="inline-option">
-                            <i class="fas fa-window-restore"></i>
-                            <p>Inline Checkout</p>
-                        </div>
-                        <div class="payment-option" id="redirect-option">
-                            <i class="fas fa-external-link-alt"></i>
-                            <p>Web Redirect</p>
-                        </div>
-                    </div>
-                    <button class="cta-button" style="width: 100%; margin-top: 20px;" id="pay-button">Proceed to Payment</button>
-                    
-                    <!-- Demo Payment Button -->
-                    <button class="cta-button" style="width: 100%; margin-top: 10px; background-color: var(--secondary);" id="demo-pay-button">
-                        <i class="fas fa-play-circle"></i> Try Demo Payment
-                    </button>
-                    
-                    <!-- Payment Status Display -->
-                    <div id="paymentStatus" class="payment-status"></div>
                 </div>
             </div>
         </div>
@@ -870,7 +877,7 @@
                     <h3>Quick Links</h3>
                     <ul>
                         <li><a href="#home">Home</a></li>
-                        <li><a href="#features">Features</a></li>
+                        <li><a href="#products">Products</a></li>
                         <li><a href="#how-it-works">How It Works</a></li>
                         <li><a href="#payment">Payment</a></li>
                         <li><a href="#testimonials">Testimonials</a></li>
@@ -901,23 +908,85 @@
         </div>
     </footer>
 
-    <!-- Payment Modal -->
-    <div class="payment-modal" id="paymentModal">
-        <div class="modal-content">
-            <h3>Confirm Payment</h3>
-            <p>You are about to make a payment of <span id="confirmAmount">₦100</span> for <span id="confirmProduct">product</span>.</p>
-            <p>This transaction will be processed securely by Interswitch.</p>
-            <div class="modal-buttons">
-                <button class="btn-primary" id="confirmPayment">Confirm Payment</button>
-                <button class="btn-secondary" id="cancelPayment">Cancel</button>
-            </div>
+    <!-- Cart Sidebar -->
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3>Your Cart</h3>
+            <button class="close-cart" id="closeCart">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
+        <div class="cart-items" id="cartItems">
+            <!-- Cart items will be loaded here -->
+        </div>
+        <div class="cart-total">
+            <span>Total:</span>
+            <span id="cartTotal">₦0</span>
+        </div>
+        <button class="checkout-btn" id="checkoutBtn">Proceed to Checkout</button>
     </div>
+    <div class="overlay" id="overlay"></div>
 
-    <!-- Interswitch Payment Script -->
-    <script src="https://newwebpay.qa.interswitchng.com/inline-checkout.js"></script>
-    
     <script>
+        // Product data with images
+        const products = [
+            {
+                id: 1,
+                name: "Fresh Maize",
+                price: 100,
+                image: "https://foodieng.com/wp-content/uploads/2022/05/yellow-maiz.jpg",
+                description: "Freshly harvested maize, perfect for cooking or roasting."
+            },
+            {
+                id: 2,
+                name: "Premium Rice",
+                price: 100,
+                image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+                description: "High-quality locally grown rice, perfect for daily meals."
+            },
+            {
+                id: 3,
+                name: "Fresh Tomatoes",
+                price: 100,
+                image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+                description: "Fresh, ripe tomatoes from local farms."
+            },
+            {
+                id: 4,
+                name: "Beans",
+                price: 100,
+                image: "https://www.pricepally.com/_next/image?url=https%3A%2F%2Fpp-new-node-medusa-prod-bucket.s3.us-east-1.amazonaws.com%2FBeans%20-%20Oloyin%20General-1725272084456.jpg&w=1920&q=75",
+                description: "Nutritious beans, rich in protein and fiber."
+            },
+            {
+                id: 5,
+                name: "Cassava",
+                price: 100,
+                image: "https://greenhillsfarmstead.com/wp-content/uploads/2021/07/FACTS-1-1024x1024.png",
+                description: "Fresh cassava, perfect for making garri and other dishes."
+            },
+            {
+                id: 6,
+                name: "Yam",
+                price: 100,
+                image: "https://i0.wp.com/wangaraufoods.com/wp-content/uploads/2023/09/Benue-Yam.jpg?resize=600%2C600&ssl=1",
+                description: "Fresh yam tubers, great for boiling, frying or pounding."
+            }
+        ];
+
+        // Cart functionality
+        let cart = [];
+        const cartIcon = document.getElementById('cartIcon');
+        const cartSidebar = document.getElementById('cartSidebar');
+        const closeCart = document.getElementById('closeCart');
+        const overlay = document.getElementById('overlay');
+        const cartItems = document.getElementById('cartItems');
+        const cartTotal = document.getElementById('cartTotal');
+        const cartCount = document.querySelector('.cart-count');
+        const checkoutBtn = document.getElementById('checkoutBtn');
+        const productsGrid = document.getElementById('productsGrid');
+
+        // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
             // Mobile menu functionality
             const mobileMenuBtn = document.getElementById('mobileMenuBtn');
@@ -937,279 +1006,198 @@
             
             // Navigation buttons
             document.getElementById('joinNowBtn').addEventListener('click', function() {
-                document.getElementById('payment').scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
             });
             
             document.getElementById('mobileJoinBtn').addEventListener('click', function() {
-                document.getElementById('payment').scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
                 mobileNav.classList.remove('active');
             });
             
             document.getElementById('getStartedBtn').addEventListener('click', function() {
-                document.getElementById('payment').scrollIntoView({ behavior: 'smooth' });
+                document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
             });
             
-            // Payment functionality
-            const productSelect = document.getElementById('product');
-            const quantityInput = document.getElementById('quantity');
-            const amountInput = document.getElementById('amount');
-            const emailInput = document.getElementById('email');
-            const nameInput = document.getElementById('name');
-            const inlineOption = document.getElementById('inline-option');
-            const redirectOption = document.getElementById('redirect-option');
-            const payButton = document.getElementById('pay-button');
-            const demoPayButton = document.getElementById('demo-pay-button');
-            const paymentModal = document.getElementById('paymentModal');
-            const confirmPaymentBtn = document.getElementById('confirmPayment');
-            const cancelPaymentBtn = document.getElementById('cancelPayment');
-            const confirmAmount = document.getElementById('confirmAmount');
-            const confirmProduct = document.getElementById('confirmProduct');
-            
-            let paymentMethod = 'inline'; // Default payment method
-            
-            // Fixed price of ₦100 for all products
-            const FIXED_PRICE = 100;
-            
-            // Calculate amount when quantity changes
-            function calculateAmount() {
-                const quantity = parseInt(quantityInput.value) || 0;
-                const amount = FIXED_PRICE * quantity;
-                amountInput.value = amount.toLocaleString();
-            }
-            
-            quantityInput.addEventListener('input', calculateAmount);
-            
-            // Payment method selection
-            inlineOption.addEventListener('click', function() {
-                inlineOption.classList.add('active');
-                redirectOption.classList.remove('active');
-                paymentMethod = 'inline';
+            // Cart functionality
+            cartIcon.addEventListener('click', function() {
+                cartSidebar.classList.add('active');
+                overlay.classList.add('active');
             });
             
-            redirectOption.addEventListener('click', function() {
-                redirectOption.classList.add('active');
-                inlineOption.classList.remove('active');
-                paymentMethod = 'redirect';
+            closeCart.addEventListener('click', function() {
+                cartSidebar.classList.remove('active');
+                overlay.classList.remove('active');
             });
             
-            // Enhanced payment callback function
-            function paymentCallback(response) {
-                console.log('Full payment response:', response);
-                const statusDiv = document.getElementById('paymentStatus');
-                
-                if (response && response.ResponseCode === "00") {
-                    statusDiv.className = 'payment-status payment-success';
-                    statusDiv.innerHTML = `
-                        <h4><i class="fas fa-check-circle"></i> Payment Successful!</h4>
-                        <p>Transaction Reference: ${response.PaymentReference || 'DEMO_REF'}</p>
-                        <p>Amount: ₦${(response.Amount ? (response.Amount / 100) : amountInput.value.replace(/,/g, '')).toLocaleString()}</p>
-                        <p>Thank you for your payment!</p>
-                    `;
-                    statusDiv.style.display = 'block';
-                    
-                } else {
-                    statusDiv.className = 'payment-status payment-error';
-                    let errorMessage = 'Payment failed. Please try again.';
-                    
-                    if (response && response.ResponseDescription) {
-                        errorMessage = `Payment Failed: ${response.ResponseDescription}`;
-                    } else if (response === 'canceled') {
-                        errorMessage = 'Payment was cancelled.';
-                    } else if (!response) {
-                        errorMessage = 'Payment gateway not responding. Please try the demo payment.';
-                    }
-                    
-                    statusDiv.innerHTML = `
-                        <h4><i class="fas fa-exclamation-triangle"></i> Payment Issue</h4>
-                        <p>${errorMessage}</p>
-                        <p>Please check your payment details and try again.</p>
-                    `;
-                    statusDiv.style.display = 'block';
-                }
-                
-                // Scroll to payment status
-                statusDiv.scrollIntoView({ behavior: 'smooth' });
-            }
+            overlay.addEventListener('click', function() {
+                cartSidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            });
             
-            // Show payment modal
-            payButton.addEventListener('click', function() {
-                const amount = parseInt(amountInput.value.replace(/,/g, '')) || 0;
-                const product = productSelect.options[productSelect.selectedIndex].text.split(' - ')[0];
-                const email = emailInput.value;
-                const name = nameInput.value;
-                
-                if (amount < FIXED_PRICE) {
-                    alert('Minimum payment amount is ₦' + FIXED_PRICE + '. Please select a product and quantity.');
+            checkoutBtn.addEventListener('click', function() {
+                if (cart.length === 0) {
+                    alert('Your cart is empty!');
                     return;
                 }
                 
-                if (!email) {
-                    alert('Please enter your email address');
-                    return;
-                }
-                
-                if (!name) {
-                    alert('Please enter your full name');
-                    return;
-                }
-                
-                if (!productSelect.value) {
-                    alert('Please select a product');
-                    return;
-                }
-                
-                confirmAmount.textContent = '₦' + amount.toLocaleString();
-                confirmProduct.textContent = product;
-                paymentModal.classList.add('active');
+                // In a real app, this would redirect to checkout
+                alert('Proceeding to checkout with ' + cart.length + ' items. Total: ₦' + calculateCartTotal());
+                cartSidebar.classList.remove('active');
+                overlay.classList.remove('active');
             });
             
-            // Demo payment button
-            demoPayButton.addEventListener('click', function() {
-                const amount = parseInt(amountInput.value.replace(/,/g, '')) || 0;
-                const product = productSelect.options[productSelect.selectedIndex].text.split(' - ')[0];
-                
-                if (!productSelect.value) {
-                    alert('Please select a product first');
-                    return;
-                }
-                
-                const statusDiv = document.getElementById('paymentStatus');
-                statusDiv.className = 'payment-status payment-success';
-                statusDiv.innerHTML = `
-                    <h4><i class="fas fa-check-circle"></i> Demo Payment Successful!</h4>
-                    <p>Transaction Reference: DEMO_${Date.now()}</p>
-                    <p>Product: ${product}</p>
-                    <p>Amount: ₦${amount.toLocaleString()}</p>
-                    <p><em>This is a demo transaction for testing purposes.</em></p>
-                    <p>In a real scenario, you would be redirected to Interswitch payment gateway.</p>
-                `;
-                statusDiv.style.display = 'block';
-                statusDiv.scrollIntoView({ behavior: 'smooth' });
-            });
-            
-            // Confirm payment
-            confirmPaymentBtn.addEventListener('click', function() {
-                paymentModal.classList.remove('active');
-                processPayment();
-            });
-            
-            // Cancel payment
-            cancelPaymentBtn.addEventListener('click', function() {
-                paymentModal.classList.remove('active');
-            });
-            
-            // Process payment
-            function processPayment() {
-                const amount = parseInt(amountInput.value.replace(/,/g, '')) || 0;
-                const email = emailInput.value;
-                const name = nameInput.value;
-                const product = productSelect.options[productSelect.selectedIndex].text.split(' - ')[0];
-                
-                // Generate a more unique transaction reference
-                const txnRef = 'GN_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                
-                // Show loading state
-                const statusDiv = document.getElementById('paymentStatus');
-                statusDiv.className = 'payment-status';
-                statusDiv.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Initializing payment gateway...</p>';
-                statusDiv.style.display = 'block';
-                
-                if (paymentMethod === 'inline') {
-                    // Enhanced Inline Checkout with all required fields
-                    const paymentRequest = {
-                        merchant_code: "MX257627",          
-                        pay_item_id: "Default_Payable_MX257627",
-                        pay_item_name: product,
-                        txn_ref: txnRef,
-                        site_redirect_url: window.location.href,
-                        amount: amount * 100, // Convert to kobo
-                        currency: 566, // NGN - Nigerian Naira
-                        cust_email: email,
-                        cust_name: name,
-                        cust_id: "cust_" + Date.now(),
-                        mode: 'TEST',
-                        onComplete: paymentCallback
-                    };
-                    
-                    console.log('Payment request:', paymentRequest);
-                    
-                    // Add error handling for Interswitch script
-                    try {
-                        if (typeof window.webpayCheckout === 'function') {
-                            window.webpayCheckout(paymentRequest);
-                        } else {
-                            throw new Error('Interswitch payment script not loaded properly');
-                        }
-                    } catch (error) {
-                        console.error('Payment error:', error);
-                        statusDiv.className = 'payment-status payment-error';
-                        statusDiv.innerHTML = `
-                            <h4><i class="fas fa-exclamation-triangle"></i> Payment Gateway Error</h4>
-                            <p>Unable to initialize payment gateway. This could be due to:</p>
-                            <ul style="text-align: left; margin: 10px 0;">
-                                <li>Network connectivity issues</li>
-                                <li>Browser blocking the payment popup</li>
-                                <li>Temporary service unavailability</li>
-                            </ul>
-                            <p>Please try the "Demo Payment" button for testing, or try again later.</p>
-                            <p>Error details: ${error.message}</p>
-                        `;
-                    }
-                    
-                } else {
-                    // Web Redirect method
-                    const form = document.createElement('form');
-                    form.method = 'post';
-                    form.action = 'https://newwebpay.qa.interswitchng.com/collections/w/pay';
-                    form.style.display = 'none';
-                    
-                    const fields = {
-                        merchant_code: "MX257627",
-                        pay_item_id: "Default_Payable_MX257627",
-                        site_redirect_url: window.location.href,
-                        txn_ref: txnRef,
-                        amount: amount * 100,
-                        currency: 566,
-                        cust_email: email,
-                        cust_name: name,
-                        pay_item_name: product
-                    };
-                    
-                    for (const key in fields) {
-                        const input = document.createElement('input');
-                        input.name = key;
-                        input.value = fields[key];
-                        form.appendChild(input);
-                    }
-                    
-                    document.body.appendChild(form);
-                    form.submit();
-                }
-            }
-            
-            // Test Interswitch connection
-            function testInterswitchConnection() {
-                setTimeout(() => {
-                    if (typeof window.webpayCheckout !== 'function') {
-                        console.warn('Interswitch script not loaded - this may affect payment functionality');
-                        const statusDiv = document.getElementById('paymentStatus');
-                        statusDiv.className = 'payment-status payment-error';
-                        statusDiv.innerHTML = `
-                            <h4><i class="fas fa-info-circle"></i> Payment Notice</h4>
-                            <p>Interswitch payment gateway is currently experiencing issues.</p>
-                            <p>Please use the "Demo Payment" button to test the payment flow.</p>
-                        `;
-                        statusDiv.style.display = 'block';
-                    } else {
-                        console.log('Interswitch payment gateway is ready');
-                    }
-                }, 3000);
-            }
-            
-            // Initialize with default amount and test connection
-            calculateAmount();
-            testInterswitchConnection();
+            // Load products
+            loadProducts();
         });
+
+        // Load products into the grid
+        function loadProducts() {
+            productsGrid.innerHTML = '';
+            
+            products.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card';
+                productCard.innerHTML = `
+                    <img src="${product.image}" alt="${product.name}" class="product-image">
+                    <div class="product-info">
+                        <h3 class="product-title">${product.name}</h3>
+                        <p class="product-description">${product.description}</p>
+                        <div class="product-price">₦${product.price}</div>
+                        <div class="product-actions">
+                            <button class="add-to-cart" data-id="${product.id}">Add to Cart</button>
+                            <button class="buy-now" data-id="${product.id}">Buy Now</button>
+                        </div>
+                    </div>
+                `;
+                
+                productsGrid.appendChild(productCard);
+            });
+            
+            // Add event listeners to buttons
+            document.querySelectorAll('.add-to-cart').forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = parseInt(this.getAttribute('data-id'));
+                    addToCart(productId);
+                });
+            });
+            
+            document.querySelectorAll('.buy-now').forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = parseInt(this.getAttribute('data-id'));
+                    addToCart(productId);
+                    cartSidebar.classList.add('active');
+                    overlay.classList.add('active');
+                });
+            });
+        }
+
+        // Add product to cart
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            
+            // Check if product is already in cart
+            const existingItem = cart.find(item => item.id === productId);
+            
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    image: product.image,
+                    quantity: 1
+                });
+            }
+            
+            updateCartDisplay();
+            
+            // Show confirmation
+            const notification = document.createElement('div');
+            notification.textContent = `${product.name} added to cart!`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: var(--primary);
+                color: white;
+                padding: 10px 20px;
+                border-radius: 5px;
+                z-index: 1001;
+                box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 3000);
+        }
+
+        // Update cart display
+        function updateCartDisplay() {
+            // Update cart count
+            const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+            cartCount.textContent = totalItems;
+            
+            // Update cart items
+            cartItems.innerHTML = '';
+            
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<p>Your cart is empty</p>';
+            } else {
+                cart.forEach(item => {
+                    const cartItem = document.createElement('div');
+                    cartItem.className = 'cart-item';
+                    cartItem.innerHTML = `
+                        <img src="${item.image}" alt="${item.name}" class="cart-item-image">
+                        <div class="cart-item-details">
+                            <h4 class="cart-item-title">${item.name}</h4>
+                            <div class="cart-item-price">₦${item.price} x ${item.quantity}</div>
+                            <div class="cart-item-quantity">
+                                <button class="quantity-btn" data-id="${item.id}" data-action="decrease">-</button>
+                                <span>${item.quantity}</span>
+                                <button class="quantity-btn" data-id="${item.id}" data-action="increase">+</button>
+                            </div>
+                        </div>
+                    `;
+                    cartItems.appendChild(cartItem);
+                });
+                
+                // Add event listeners to quantity buttons
+                document.querySelectorAll('.quantity-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const productId = parseInt(this.getAttribute('data-id'));
+                        const action = this.getAttribute('data-action');
+                        updateQuantity(productId, action);
+                    });
+                });
+            }
+            
+            // Update total
+            cartTotal.textContent = '₦' + calculateCartTotal();
+        }
+
+        // Update item quantity in cart
+        function updateQuantity(productId, action) {
+            const item = cart.find(item => item.id === productId);
+            
+            if (action === 'increase') {
+                item.quantity += 1;
+            } else if (action === 'decrease') {
+                item.quantity -= 1;
+                
+                if (item.quantity <= 0) {
+                    cart = cart.filter(item => item.id !== productId);
+                }
+            }
+            
+            updateCartDisplay();
+        }
+
+        // Calculate cart total
+        function calculateCartTotal() {
+            return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+        }
     </script>
 </body>
 </html>
