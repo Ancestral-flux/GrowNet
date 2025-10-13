@@ -472,27 +472,67 @@
             display: block;
         }
         
-        /* Payment Section */
-        .payment-section {
-            padding: 60px 0;
-            background-color: var(--white);
+        /* Payment Gateway Styles */
+        .payment-gateway {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 500px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 30px rgba(0,0,0,0.3);
+            z-index: 1002;
+            padding: 30px;
         }
         
-        .payment-container {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 40px;
+        .payment-gateway.active {
+            display: block;
         }
         
-        .payment-info {
-            padding: 0 15px;
+        .payment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .close-payment {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .payment-details {
+            margin-bottom: 20px;
+        }
+        
+        .payment-summary {
+            background: var(--light);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .payment-summary h4 {
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+        
+        .payment-summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
         }
         
         .payment-form {
-            background-color: var(--light);
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-top: 20px;
         }
         
         .form-group {
@@ -505,12 +545,87 @@
             font-weight: 500;
         }
         
-        .form-group input, .form-group select {
+        .form-group input {
             width: 100%;
             padding: 12px;
             border: 1px solid #ddd;
             border-radius: 5px;
             font-size: 1rem;
+        }
+        
+        .pay-button {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .pay-button:hover {
+            background: var(--dark);
+        }
+        
+        .payment-status {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .payment-status.active {
+            display: block;
+        }
+        
+        .payment-success {
+            color: var(--primary);
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+        
+        .payment-error {
+            color: #f44336;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+        
+        /* How It Works Section */
+        .how-it-works {
+            padding: 60px 0;
+            background-color: var(--white);
+        }
+        
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+        
+        .step {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        .step h3 {
+            margin-bottom: 10px;
+            color: var(--dark);
         }
         
         /* Testimonials */
@@ -669,10 +784,6 @@
         }
         
         @media (min-width: 769px) {
-            .payment-container {
-                grid-template-columns: 1fr 1fr;
-            }
-            
             .mobile-nav {
                 display: none !important;
             }
@@ -692,7 +803,6 @@
                     <li><a href="#home">Home</a></li>
                     <li><a href="#products">Products</a></li>
                     <li><a href="#how-it-works">How It Works</a></li>
-                    <li><a href="#payment">Payment</a></li>
                     <li><a href="#testimonials">Testimonials</a></li>
                 </ul>
             </nav>
@@ -716,7 +826,6 @@
                 <li><a href="#home">Home</a></li>
                 <li><a href="#products">Products</a></li>
                 <li><a href="#how-it-works">How It Works</a></li>
-                <li><a href="#payment">Payment</a></li>
                 <li><a href="#testimonials">Testimonials</a></li>
                 <li><button class="cta-button" style="width: 100%; margin-top: 10px;" id="mobileJoinBtn">Join Now</button></li>
             </ul>
@@ -879,7 +988,6 @@
                         <li><a href="#home">Home</a></li>
                         <li><a href="#products">Products</a></li>
                         <li><a href="#how-it-works">How It Works</a></li>
-                        <li><a href="#payment">Payment</a></li>
                         <li><a href="#testimonials">Testimonials</a></li>
                     </ul>
                 </div>
@@ -925,8 +1033,55 @@
         </div>
         <button class="checkout-btn" id="checkoutBtn">Proceed to Checkout</button>
     </div>
+    
+    <!-- Payment Gateway -->
+    <div class="payment-gateway" id="paymentGateway">
+        <div class="payment-header">
+            <h3>Complete Your Payment</h3>
+            <button class="close-payment" id="closePayment">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="payment-details">
+            <div class="payment-summary">
+                <h4>Order Summary</h4>
+                <div class="payment-summary-item">
+                    <span>Items:</span>
+                    <span id="paymentItems">0</span>
+                </div>
+                <div class="payment-summary-item">
+                    <span>Total Amount:</span>
+                    <span id="paymentTotal">₦0</span>
+                </div>
+            </div>
+            
+            <div class="payment-form">
+                <div class="form-group">
+                    <label for="customerName">Full Name</label>
+                    <input type="text" id="customerName" placeholder="Enter your full name" required>
+                </div>
+                <div class="form-group">
+                    <label for="customerEmail">Email Address</label>
+                    <input type="email" id="customerEmail" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="customerPhone">Phone Number</label>
+                    <input type="tel" id="customerPhone" placeholder="Enter your phone number" required>
+                </div>
+                
+                <button class="pay-button" id="payButton">Pay with Interswitch</button>
+            </div>
+        </div>
+        <div class="payment-status" id="paymentStatus">
+            <!-- Payment status will be displayed here -->
+        </div>
+    </div>
+    
     <div class="overlay" id="overlay"></div>
 
+    <!-- Interswitch Inline Checkout Script -->
+    <script src="https://newwebpay.qa.interswitchng.com/inline-checkout.js"></script>
+    
     <script>
         // Product data with images
         const products = [
@@ -985,6 +1140,17 @@
         const cartCount = document.querySelector('.cart-count');
         const checkoutBtn = document.getElementById('checkoutBtn');
         const productsGrid = document.getElementById('productsGrid');
+        
+        // Payment gateway elements
+        const paymentGateway = document.getElementById('paymentGateway');
+        const closePayment = document.getElementById('closePayment');
+        const paymentItems = document.getElementById('paymentItems');
+        const paymentTotal = document.getElementById('paymentTotal');
+        const payButton = document.getElementById('payButton');
+        const paymentStatus = document.getElementById('paymentStatus');
+        const customerName = document.getElementById('customerName');
+        const customerEmail = document.getElementById('customerEmail');
+        const customerPhone = document.getElementById('customerPhone');
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
@@ -1032,6 +1198,7 @@
             overlay.addEventListener('click', function() {
                 cartSidebar.classList.remove('active');
                 overlay.classList.remove('active');
+                paymentGateway.classList.remove('active');
             });
             
             checkoutBtn.addEventListener('click', function() {
@@ -1040,10 +1207,18 @@
                     return;
                 }
                 
-                // In a real app, this would redirect to checkout
-                alert('Proceeding to checkout with ' + cart.length + ' items. Total: ₦' + calculateCartTotal());
-                cartSidebar.classList.remove('active');
+                // Show payment gateway
+                showPaymentGateway();
+            });
+            
+            // Payment gateway functionality
+            closePayment.addEventListener('click', function() {
+                paymentGateway.classList.remove('active');
                 overlay.classList.remove('active');
+            });
+            
+            payButton.addEventListener('click', function() {
+                processPayment();
             });
             
             // Load products
@@ -1197,6 +1372,111 @@
         // Calculate cart total
         function calculateCartTotal() {
             return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+        }
+
+        // Show payment gateway
+        function showPaymentGateway() {
+            // Update payment summary
+            const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+            const totalAmount = calculateCartTotal();
+            
+            paymentItems.textContent = totalItems;
+            paymentTotal.textContent = '₦' + totalAmount;
+            
+            // Show payment gateway
+            paymentGateway.classList.add('active');
+            overlay.classList.add('active');
+            
+            // Reset form
+            customerName.value = '';
+            customerEmail.value = '';
+            customerPhone.value = '';
+            paymentStatus.classList.remove('active');
+        }
+
+        // Process payment using Interswitch Inline Checkout
+        function processPayment() {
+            // Validate form
+            if (!customerName.value || !customerEmail.value || !customerPhone.value) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            const totalAmount = calculateCartTotal();
+            const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+            
+            // Generate a unique transaction reference
+            const txnRef = 'GrowNet_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+            
+            // Interswitch payment configuration with updated credentials
+            const paymentRequest = {
+                merchant_code: "MX257627",          
+                pay_item_id: "Default_Payable_MX257627",
+                txn_ref: txnRef,
+                site_redirect_url: window.location.href,
+                amount: totalAmount * 100, // Convert to kobo (minor units)
+                currency: 566, // ISO 4217 numeric code for NGN
+                cust_name: customerName.value,
+                cust_email: customerEmail.value,
+                cust_id: customerPhone.value,
+                pay_item_name: "GrowNet Agricultural Products",
+                mode: 'TEST', // Change to 'LIVE' for production
+                onComplete: paymentCallback
+            };
+            
+            // Show processing message
+            paymentStatus.innerHTML = `
+                <div class="payment-success">
+                    <i class="fas fa-spinner fa-spin"></i> Initializing payment...
+                </div>
+            `;
+            paymentStatus.classList.add('active');
+            
+            // Initiate Interswitch inline checkout
+            window.webpayCheckout(paymentRequest);
+        }
+
+        // Payment callback function
+        function paymentCallback(response) {
+            console.log('Payment response:', response);
+            
+            if (response && response.ResponseCode === "00") {
+                // Payment successful
+                paymentStatus.innerHTML = `
+                    <div class="payment-success">
+                        <i class="fas fa-check-circle"></i> Payment Successful!
+                    </div>
+                    <p>Transaction Reference: ${response.PaymentReference}</p>
+                    <p>Amount Paid: ₦${response.Amount / 100}</p>
+                    <p>Thank you for your purchase. Your order will be processed shortly.</p>
+                    <button class="cta-button" style="margin-top: 15px;" id="continueShopping">Continue Shopping</button>
+                `;
+                
+                // Clear cart after successful payment
+                cart = [];
+                updateCartDisplay();
+                
+                // Add event listener to continue shopping button
+                document.getElementById('continueShopping').addEventListener('click', function() {
+                    paymentGateway.classList.remove('active');
+                    overlay.classList.remove('active');
+                });
+            } else {
+                // Payment failed
+                paymentStatus.innerHTML = `
+                    <div class="payment-error">
+                        <i class="fas fa-times-circle"></i> Payment Failed
+                    </div>
+                    <p>${response.ResponseDescription || 'An error occurred during payment processing.'}</p>
+                    <p>Please try again or contact support if the problem persists.</p>
+                    <button class="cta-button" style="margin-top: 15px;" id="tryAgain">Try Again</button>
+                `;
+                
+                // Add event listener to try again button
+                document.getElementById('tryAgain').addEventListener('click', function() {
+                    paymentStatus.classList.remove('active');
+                });
+            }
         }
     </script>
 </body>
