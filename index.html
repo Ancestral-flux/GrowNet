@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GrowNet - Network That Helps Farmers Grow</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --primary: #2e7d32;
+            --primary-light: #4caf50;
+            --secondary: #ff9800;
+            --dark: #1b5e20;
+            --light: #f1f8e9;
+            --text: #333;
+            --white: #ffffff;
+        }
+        
+        body {
+            color: var(--text);
+            line-height: 1.6;
+            background-color: var(--light);
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        
+        /* Header Styles */
+        header {
+            background-color: var(--white);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo h1 {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+        
+        .logo i {
+            font-size: 1.8rem;
+            color: var(--primary);
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 15px;
+        }
+        
+        nav a {
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 500;
+            transition: color 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        nav a:hover {
+            color: var(--primary);
+        }
+        
+        .cta-button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .cta-button:hover {
+            background-color: var(--dark);
+        }
+        
+        /* Mobile Menu */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--primary);
+            cursor: pointer;
+        }
+        
+        .mobile-nav {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background-color: var(--white);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+            z-index: 99;
+        }
+        
+        .mobile-nav.active {
+            display: block;
+        }
+        
+        .mobile-nav ul {
+            list-style: none;
+            padding: 20px;
+        }
+        
+        .mobile-nav li {
+            margin-bottom: 15px;
+        }
+        
+        .mobile-nav a {
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 500;
+            display: block;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1632&q=80');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            text-align: center;
+            padding: 80px 0;
+        }
+        
+        .hero h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+        
+        .hero p {
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto 30px;
+            padding: 0 15px;
+        }
+        
+        /* Features Section */
+        .features {
+            padding: 60px 0;
+            background-color: var(--white);
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .section-title h2 {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+        
+        .section-title p {
+            max-width: 700px;
+            margin: 0 auto;
+            color: #666;
+            padding: 0 15px;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+        
+        .feature-card {
+            background-color: var(--white);
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            text-align: center;
+            transition: transform 0.3s;
+            border: 1px solid #eee;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feature-icon {
+            font-size: 2.2rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+        
+        .feature-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+        
+        /* How It Works */
+        .how-it-works {
+            padding: 60px 0;
+            background-color: var(--light);
+        }
+        
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+        
+        .step {
+            text-align: center;
+            padding: 25px 15px;
+            background-color: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .step-number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            line-height: 40px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        
+        .step h3 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+        
+        /* Payment Section */
+        .payment-section {
+            padding: 60px 0;
+            background-color: var(--white);
+        }
+        
+        .payment-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 40px;
+        }
+        
+        .payment-info {
+            padding: 0 15px;
+        }
+        
+        .payment-form {
+            background-color: var(--light);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .payment-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .payment-option {
+            text-align: center;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .payment-option.active {
+            border-color: var(--primary);
+            background-color: rgba(46, 125, 50, 0.1);
+        }
+        
+        /* Testimonials */
+        .testimonials {
+            padding: 60px 0;
+            background-color: var(--light);
+        }
+        
+        .testimonial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+        
+        .testimonial {
+            background-color: var(--white);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .testimonial-text {
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+        
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .author-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #ddd;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .author-info h4 {
+            margin-bottom: 5px;
+        }
+        
+        .author-info p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        /* Footer */
+        footer {
+            background-color: var(--dark);
+            color: white;
+            padding: 50px 0 20px;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .footer-column h3 {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        .footer-column h3::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 40px;
+            height: 2px;
+            background-color: var(--secondary);
+        }
+        
+        .footer-column ul {
+            list-style: none;
+        }
+        
+        .footer-column ul li {
+            margin-bottom: 10px;
+        }
+        
+        .footer-column a {
+            color: #ccc;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-column a:hover {
+            color: white;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .social-links a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background-color: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            transition: background-color 0.3s;
+        }
+        
+        .social-links a:hover {
+            background-color: var(--primary);
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+        
+        /* Payment Modal */
+        .payment-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .payment-modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+        }
+        
+        .modal-content h3 {
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            justify-content: center;
+        }
+        
+        .modal-buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background-color: #eee;
+            color: #333;
+        }
+        
+        /* Fixed Price Banner */
+        .fixed-price-banner {
+            background-color: var(--secondary);
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-container {
+                flex-wrap: wrap;
+            }
+            
+            nav {
+                display: none;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .hero h2 {
+                font-size: 1.8rem;
+            }
+            
+            .hero p {
+                font-size: 1rem;
+            }
+            
+            .payment-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-buttons {
+                flex-direction: column;
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .payment-container {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .mobile-nav {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container header-container">
+            <div class="logo">
+                <i class="fas fa-seedling"></i>
+                <h1>GrowNet</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#how-it-works">How It Works</a></li>
+                    <li><a href="#payment">Payment</a></li>
+                    <li><a href="#testimonials">Testimonials</a></li>
+                </ul>
+            </nav>
+            <button class="cta-button">Join Now</button>
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <div class="mobile-nav" id="mobileNav">
+            <ul>
+                <li><a href="#home">Home</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#how-it-works">How It Works</a></li>
+                <li><a href="#payment">Payment</a></li>
+                <li><a href="#testimonials">Testimonials</a></li>
+                <li><button class="cta-button" style="width: 100%; margin-top: 10px;">Join Now</button></li>
+            </ul>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="container">
+            <h2>Connecting Farmers and Buyers</h2>
+            <p>GrowNet helps farmers reduce post-harvest losses by connecting them directly with buyers. List your crops early and secure sales before harvest time.</p>
+            <button class="cta-button">Get Started</button>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-title">
+                <h2>Our Features</h2>
+                <p>GrowNet provides a comprehensive platform to connect farmers with buyers and streamline the agricultural supply chain.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-seedling"></i>
+                    </div>
+                    <h3>Early Crop Listing</h3>
+                    <p>Farmers can list their crops immediately after planting, giving buyers early visibility and securing sales in advance.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-search-dollar"></i>
+                    </div>
+                    <h3>Buyer Matching</h3>
+                    <p>Our intelligent system matches farmers with the most suitable buyers based on product type, location, and pricing.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <h3>Secure Payments</h3>
+                    <p>Integrated with Interswitch for secure, reliable payment processing with multiple payment options.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <h3>Logistics Support</h3>
+                    <p>We help coordinate transportation and delivery logistics to ensure products reach buyers in optimal condition.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="container">
+            <div class="section-title">
+                <h2>How GrowNet Works</h2>
+                <p>Simple steps to connect farmers with buyers and reduce post-harvest losses</p>
+            </div>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Register & List</h3>
+                    <p>Farmers register and list their crops with expected harvest dates and pricing.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Buyer Discovery</h3>
+                    <p>Buyers discover available products and connect with farmers directly.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Secure Payment</h3>
+                    <p>Transactions are processed securely through our payment gateway.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3>Delivery & Feedback</h3>
+                    <p>Products are delivered and both parties provide feedback on the experience.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Payment Section -->
+    <section class="payment-section" id="payment">
+        <div class="container">
+            <div class="section-title">
+                <h2>Secure Payment Processing</h2>
+                <p>Powered by Interswitch for safe and reliable transactions</p>
+            </div>
+            <div class="payment-container">
+                <div class="payment-info">
+                    <h3>Multiple Payment Options</h3>
+                    <p>GrowNet integrates with Interswitch to provide farmers and buyers with multiple secure payment options:</p>
+                    <ul style="margin-top: 20px; margin-left: 20px;">
+                        <li>Credit/Debit Cards</li>
+                        <li>Bank Transfers</li>
+                        <li>USSD Payments</li>
+                        <li>Mobile Wallets</li>
+                        <li>Google Pay</li>
+                    </ul>
+                    <p style="margin-top: 20px;">Our payment system ensures that transactions are secure and farmers receive payments promptly after successful delivery.</p>
+                    <div class="fixed-price-banner">
+                        <i class="fas fa-tag"></i> All Products: Fixed Price of ₦100
+                    </div>
+                </div>
+                <div class="payment-form">
+                    <h3 style="margin-bottom: 20px;">Make a Payment</h3>
+                    <div class="form-group">
+                        <label for="product">Select Product</label>
+                        <select id="product">
+                            <option value="">-- Choose a product --</option>
+                            <option value="maize">Maize - ₦100 per unit</option>
+                            <option value="rice">Rice - ₦100 per unit</option>
+                            <option value="tomatoes">Tomatoes - ₦100 per unit</option>
+                            <option value="beans">Beans - ₦100 per unit</option>
+                            <option value="cassava">Cassava - ₦100 per unit</option>
+                            <option value="yam">Yam - ₦100 per unit</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="quantity">Quantity</label>
+                        <input type="number" id="quantity" min="1" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="amount">Amount (₦)</label>
+                        <input type="text" id="amount" readonly value="100">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" placeholder="Your email address">
+                    </div>
+                    <div class="payment-options">
+                        <div class="payment-option active" id="inline-option">
+                            <i class="fas fa-window-restore"></i>
+                            <p>Inline Checkout</p>
+                        </div>
+                        <div class="payment-option" id="redirect-option">
+                            <i class="fas fa-external-link-alt"></i>
+                            <p>Web Redirect</p>
+                        </div>
+                    </div>
+                    <button class="cta-button" style="width: 100%; margin-top: 20px;" id="pay-button">Proceed to Payment</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials" id="testimonials">
+        <div class="container">
+            <div class="section-title">
+                <h2>What Our Users Say</h2>
+                <p>Hear from farmers and buyers who have transformed their agricultural business with GrowNet</p>
+            </div>
+            <div class="testimonial-grid">
+                <div class="testimonial">
+                    <div class="testimonial-text">
+                        "GrowNet has completely changed how I sell my crops. I no longer worry about finding buyers after harvest. Listing early ensures I have buyers lined up!"
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">
+                            <i class="fas fa-user" style="font-size: 1.5rem; color: #666;"></i>
+                        </div>
+                        <div class="author-info">
+                            <h4>John Adebayo</h4>
+                            <p>Maize Farmer, Oyo State</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial">
+                    <div class="testimonial-text">
+                        "As a food processor, finding consistent, quality supply was always a challenge. With GrowNet, I can connect directly with farmers and plan my production better."
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">
+                            <i class="fas fa-user" style="font-size: 1.5rem; color: #666;"></i>
+                        </div>
+                        <div class="author-info">
+                            <h4>Chioma Okeke</h4>
+                            <p>Food Processing Company, Lagos</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial">
+                    <div class="testimonial-text">
+                        "The payment system is so secure and easy to use. I receive payments directly to my account without delays. This platform has reduced my post-harvest losses by 70%."
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">
+                            <i class="fas fa-user" style="font-size: 1.5rem; color: #666;"></i>
+                        </div>
+                        <div class="author-info">
+                            <h4>Musa Ibrahim</h4>
+                            <p>Rice Farmer, Kano State</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>GrowNet</h3>
+                    <p>Connecting farmers with buyers to reduce post-harvest losses and create a more efficient agricultural supply chain.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#how-it-works">How It Works</a></li>
+                        <li><a href="#payment">Payment</a></li>
+                        <li><a href="#testimonials">Testimonials</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Resources</h3>
+                    <ul>
+                        <li><a href="#">Farmers Guide</a></li>
+                        <li><a href="#">Buyer Handbook</a></li>
+                        <li><a href="#">Market Trends</a></li>
+                        <li><a href="#">FAQs</a></li>
+                        <li><a href="#">Support</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Contact Us</h3>
+                    <ul>
+                        <li><i class="fas fa-map-marker-alt"></i> 123 Agriculture Street, Farm City</li>
+                        <li><i class="fas fa-phone"></i> +234 801 234 5678</li>
+                        <li><i class="fas fa-envelope"></i> info@grownet.com</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2023 GrowNet. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Payment Modal -->
+    <div class="payment-modal" id="paymentModal">
+        <div class="modal-content">
+            <h3>Confirm Payment</h3>
+            <p>You are about to make a payment of <span id="confirmAmount">₦100</span> for <span id="confirmProduct">product</span>.</p>
+            <p>This transaction will be processed securely by Interswitch.</p>
+            <div class="modal-buttons">
+                <button class="btn-primary" id="confirmPayment">Confirm Payment</button>
+                <button class="btn-secondary" id="cancelPayment">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interswitch Payment Script -->
+    <script src="https://newwebpay.qa.interswitchng.com/inline-checkout.js"></script>
+    
+    <script>
+        // Mobile menu functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const mobileNav = document.getElementById('mobileNav');
+            
+            mobileMenuBtn.addEventListener('click', function() {
+                mobileNav.classList.toggle('active');
+            });
+            
+            // Close mobile menu when clicking on a link
+            const mobileLinks = mobileNav.querySelectorAll('a');
+            mobileLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    mobileNav.classList.remove('active');
+                });
+            });
+            
+            // Payment functionality
+            const productSelect = document.getElementById('product');
+            const quantityInput = document.getElementById('quantity');
+            const amountInput = document.getElementById('amount');
+            const emailInput = document.getElementById('email');
+            const inlineOption = document.getElementById('inline-option');
+            const redirectOption = document.getElementById('redirect-option');
+            const payButton = document.getElementById('pay-button');
+            const paymentModal = document.getElementById('paymentModal');
+            const confirmPaymentBtn = document.getElementById('confirmPayment');
+            const cancelPaymentBtn = document.getElementById('cancelPayment');
+            const confirmAmount = document.getElementById('confirmAmount');
+            const confirmProduct = document.getElementById('confirmProduct');
+            
+            let paymentMethod = 'inline'; // Default payment method
+            
+            // Fixed price of ₦100 for all products
+            const FIXED_PRICE = 100;
+            
+            // Calculate amount when quantity changes
+            function calculateAmount() {
+                const quantity = parseInt(quantityInput.value) || 0;
+                const amount = FIXED_PRICE * quantity;
+                amountInput.value = amount.toLocaleString();
+            }
+            
+            quantityInput.addEventListener('input', calculateAmount);
+            
+            // Payment method selection
+            inlineOption.addEventListener('click', function() {
+                inlineOption.classList.add('active');
+                redirectOption.classList.remove('active');
+                paymentMethod = 'inline';
+            });
+            
+            redirectOption.addEventListener('click', function() {
+                redirectOption.classList.add('active');
+                inlineOption.classList.remove('active');
+                paymentMethod = 'redirect';
+            });
+            
+            // Payment callback function
+            function paymentCallback(response) {
+                console.log('Payment response:', response);
+                if (response && response.ResponseCode === "00") {
+                    alert('Payment successful! Transaction reference: ' + response.PaymentReference);
+                } else {
+                    alert('Payment failed or was cancelled. Please try again.');
+                }
+            }
+            
+            // Show payment modal
+            payButton.addEventListener('click', function() {
+                const amount = parseInt(amountInput.value.replace(/,/g, '')) || 0;
+                const product = productSelect.options[productSelect.selectedIndex].text.split(' - ')[0];
+                const email = emailInput.value;
+                
+                if (amount < FIXED_PRICE) {
+                    alert('Minimum payment amount is ₦' + FIXED_PRICE + '. Please select a product and quantity.');
+                    return;
+                }
+                
+                if (!email) {
+                    alert('Please enter your email address');
+                    return;
+                }
+                
+                if (!productSelect.value) {
+                    alert('Please select a product');
+                    return;
+                }
+                
+                confirmAmount.textContent = '₦' + amount.toLocaleString();
+                confirmProduct.textContent = product;
+                paymentModal.classList.add('active');
+            });
+            
+            // Confirm payment
+            confirmPaymentBtn.addEventListener('click', function() {
+                paymentModal.classList.remove('active');
+                processPayment();
+            });
+            
+            // Cancel payment
+            cancelPaymentBtn.addEventListener('click', function() {
+                paymentModal.classList.remove('active');
+            });
+            
+            // Process payment
+            function processPayment() {
+                const amount = parseInt(amountInput.value.replace(/,/g, '')) || 0;
+                const email = emailInput.value;
+                const product = productSelect.options[productSelect.selectedIndex].text.split(' - ')[0];
+                
+                // Generate a unique transaction reference
+                const txnRef = 'GrowNet_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+                
+                if (paymentMethod === 'inline') {
+                    // Inline Checkout
+                    const paymentRequest = {
+                        merchant_code: "MX257627",          
+                        pay_item_id: "Default_Payable_MX257627",
+                        pay_item_name: product,
+                        txn_ref: txnRef,
+                        site_redirect_url: window.location.href,
+                        amount: amount * 100, // Convert to kobo
+                        currency: 566, // NGN
+                        cust_email: email,
+                        mode: 'TEST',
+                        onComplete: paymentCallback
+                    };
+                    
+                    window.webpayCheckout(paymentRequest);
+                } else {
+                    // Web Redirect - create a form and submit it
+                    const form = document.createElement('form');
+                    form.method = 'post';
+                    form.action = 'https://newwebpay.qa.interswitchng.com/collections/w/pay';
+                    
+                    const fields = {
+                        merchant_code: "MX257627",
+                        pay_item_id: "Default_Payable_MX257627",
+                        site_redirect_url: window.location.href,
+                        txn_ref: txnRef,
+                        amount: amount * 100, // Convert to kobo
+                        currency: 566,
+                        cust_email: email,
+                        pay_item_name: product
+                    };
+                    
+                    for (const key in fields) {
+                        const input = document.createElement('input');
+                        input.name = key;
+                        input.value = fields[key];
+                        form.appendChild(input);
+                    }
+                    
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            }
+            
+            // Initialize with default amount
+            calculateAmount();
+        });
+    </script>
+</body>
+</html>
