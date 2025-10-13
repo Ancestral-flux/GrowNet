@@ -519,6 +519,36 @@
             border-radius: 5px;
         }
         
+        /* Payment Status Styles */
+        .payment-status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+        }
+        
+        .payment-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .payment-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .test-cards {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        
         /* Responsive */
         @media (max-width: 768px) {
             .header-container {
@@ -578,7 +608,7 @@
                     <li><a href="#testimonials">Testimonials</a></li>
                 </ul>
             </nav>
-            <button class="cta-button">Join Now</button>
+            <button class="cta-button" id="joinNowBtn">Join Now</button>
             <button class="mobile-menu-btn" id="mobileMenuBtn">
                 <i class="fas fa-bars"></i>
             </button>
@@ -590,7 +620,7 @@
                 <li><a href="#how-it-works">How It Works</a></li>
                 <li><a href="#payment">Payment</a></li>
                 <li><a href="#testimonials">Testimonials</a></li>
-                <li><button class="cta-button" style="width: 100%; margin-top: 10px;">Join Now</button></li>
+                <li><button class="cta-button" style="width: 100%; margin-top: 10px;" id="mobileJoinBtn">Join Now</button></li>
             </ul>
         </div>
     </header>
@@ -600,7 +630,7 @@
         <div class="container">
             <h2>Connecting Farmers and Buyers</h2>
             <p>GrowNet helps farmers reduce post-harvest losses by connecting them directly with buyers. List your crops early and secure sales before harvest time.</p>
-            <button class="cta-button">Get Started</button>
+            <button class="cta-button" id="getStartedBtn">Get Started</button>
         </div>
     </section>
 
@@ -683,6 +713,21 @@
                 <h2>Secure Payment Processing</h2>
                 <p>Powered by Interswitch for safe and reliable transactions</p>
             </div>
+            
+            <!-- Test Cards Information -->
+            <div class="test-cards">
+                <h4><i class="fas fa-info-circle"></i> Test Payment Information</h4>
+                <p>Use these test cards for demonstration:</p>
+                <ul>
+                    <li><strong>Card:</strong> 5061 0606 0606 0606 060</li>
+                    <li><strong>Expiry:</strong> Any future date (e.g., 12/2025)</li>
+                    <li><strong>CVV:</strong> 123</li>
+                    <li><strong>PIN:</strong> 1234</li>
+                    <li><strong>OTP:</strong> 123456</li>
+                </ul>
+                <p><small>These are Interswitch test cards that work in TEST mode</small></p>
+            </div>
+            
             <div class="payment-container">
                 <div class="payment-info">
                     <h3>Multiple Payment Options</h3>
@@ -723,7 +768,11 @@
                     </div>
                     <div class="form-group">
                         <label for="email">Email Address</label>
-                        <input type="email" id="email" placeholder="Your email address">
+                        <input type="email" id="email" placeholder="Your email address" value="test@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="name" placeholder="Your full name" value="Test Customer">
                     </div>
                     <div class="payment-options">
                         <div class="payment-option active" id="inline-option">
@@ -736,6 +785,14 @@
                         </div>
                     </div>
                     <button class="cta-button" style="width: 100%; margin-top: 20px;" id="pay-button">Proceed to Payment</button>
+                    
+                    <!-- Demo Payment Button -->
+                    <button class="cta-button" style="width: 100%; margin-top: 10px; background-color: var(--secondary);" id="demo-pay-button">
+                        <i class="fas fa-play-circle"></i> Try Demo Payment
+                    </button>
+                    
+                    <!-- Payment Status Display -->
+                    <div id="paymentStatus" class="payment-status"></div>
                 </div>
             </div>
         </div>
@@ -861,8 +918,8 @@
     <script src="https://newwebpay.qa.interswitchng.com/inline-checkout.js"></script>
     
     <script>
-        // Mobile menu functionality
         document.addEventListener('DOMContentLoaded', function() {
+            // Mobile menu functionality
             const mobileMenuBtn = document.getElementById('mobileMenuBtn');
             const mobileNav = document.getElementById('mobileNav');
             
@@ -878,14 +935,30 @@
                 });
             });
             
+            // Navigation buttons
+            document.getElementById('joinNowBtn').addEventListener('click', function() {
+                document.getElementById('payment').scrollIntoView({ behavior: 'smooth' });
+            });
+            
+            document.getElementById('mobileJoinBtn').addEventListener('click', function() {
+                document.getElementById('payment').scrollIntoView({ behavior: 'smooth' });
+                mobileNav.classList.remove('active');
+            });
+            
+            document.getElementById('getStartedBtn').addEventListener('click', function() {
+                document.getElementById('payment').scrollIntoView({ behavior: 'smooth' });
+            });
+            
             // Payment functionality
             const productSelect = document.getElementById('product');
             const quantityInput = document.getElementById('quantity');
             const amountInput = document.getElementById('amount');
             const emailInput = document.getElementById('email');
+            const nameInput = document.getElementById('name');
             const inlineOption = document.getElementById('inline-option');
             const redirectOption = document.getElementById('redirect-option');
             const payButton = document.getElementById('pay-button');
+            const demoPayButton = document.getElementById('demo-pay-button');
             const paymentModal = document.getElementById('paymentModal');
             const confirmPaymentBtn = document.getElementById('confirmPayment');
             const cancelPaymentBtn = document.getElementById('cancelPayment');
@@ -919,14 +992,43 @@
                 paymentMethod = 'redirect';
             });
             
-            // Payment callback function
+            // Enhanced payment callback function
             function paymentCallback(response) {
-                console.log('Payment response:', response);
+                console.log('Full payment response:', response);
+                const statusDiv = document.getElementById('paymentStatus');
+                
                 if (response && response.ResponseCode === "00") {
-                    alert('Payment successful! Transaction reference: ' + response.PaymentReference);
+                    statusDiv.className = 'payment-status payment-success';
+                    statusDiv.innerHTML = `
+                        <h4><i class="fas fa-check-circle"></i> Payment Successful!</h4>
+                        <p>Transaction Reference: ${response.PaymentReference || 'DEMO_REF'}</p>
+                        <p>Amount: ₦${(response.Amount ? (response.Amount / 100) : amountInput.value.replace(/,/g, '')).toLocaleString()}</p>
+                        <p>Thank you for your payment!</p>
+                    `;
+                    statusDiv.style.display = 'block';
+                    
                 } else {
-                    alert('Payment failed or was cancelled. Please try again.');
+                    statusDiv.className = 'payment-status payment-error';
+                    let errorMessage = 'Payment failed. Please try again.';
+                    
+                    if (response && response.ResponseDescription) {
+                        errorMessage = `Payment Failed: ${response.ResponseDescription}`;
+                    } else if (response === 'canceled') {
+                        errorMessage = 'Payment was cancelled.';
+                    } else if (!response) {
+                        errorMessage = 'Payment gateway not responding. Please try the demo payment.';
+                    }
+                    
+                    statusDiv.innerHTML = `
+                        <h4><i class="fas fa-exclamation-triangle"></i> Payment Issue</h4>
+                        <p>${errorMessage}</p>
+                        <p>Please check your payment details and try again.</p>
+                    `;
+                    statusDiv.style.display = 'block';
                 }
+                
+                // Scroll to payment status
+                statusDiv.scrollIntoView({ behavior: 'smooth' });
             }
             
             // Show payment modal
@@ -934,6 +1036,7 @@
                 const amount = parseInt(amountInput.value.replace(/,/g, '')) || 0;
                 const product = productSelect.options[productSelect.selectedIndex].text.split(' - ')[0];
                 const email = emailInput.value;
+                const name = nameInput.value;
                 
                 if (amount < FIXED_PRICE) {
                     alert('Minimum payment amount is ₦' + FIXED_PRICE + '. Please select a product and quantity.');
@@ -945,6 +1048,11 @@
                     return;
                 }
                 
+                if (!name) {
+                    alert('Please enter your full name');
+                    return;
+                }
+                
                 if (!productSelect.value) {
                     alert('Please select a product');
                     return;
@@ -953,6 +1061,30 @@
                 confirmAmount.textContent = '₦' + amount.toLocaleString();
                 confirmProduct.textContent = product;
                 paymentModal.classList.add('active');
+            });
+            
+            // Demo payment button
+            demoPayButton.addEventListener('click', function() {
+                const amount = parseInt(amountInput.value.replace(/,/g, '')) || 0;
+                const product = productSelect.options[productSelect.selectedIndex].text.split(' - ')[0];
+                
+                if (!productSelect.value) {
+                    alert('Please select a product first');
+                    return;
+                }
+                
+                const statusDiv = document.getElementById('paymentStatus');
+                statusDiv.className = 'payment-status payment-success';
+                statusDiv.innerHTML = `
+                    <h4><i class="fas fa-check-circle"></i> Demo Payment Successful!</h4>
+                    <p>Transaction Reference: DEMO_${Date.now()}</p>
+                    <p>Product: ${product}</p>
+                    <p>Amount: ₦${amount.toLocaleString()}</p>
+                    <p><em>This is a demo transaction for testing purposes.</em></p>
+                    <p>In a real scenario, you would be redirected to Interswitch payment gateway.</p>
+                `;
+                statusDiv.style.display = 'block';
+                statusDiv.scrollIntoView({ behavior: 'smooth' });
             });
             
             // Confirm payment
@@ -970,13 +1102,20 @@
             function processPayment() {
                 const amount = parseInt(amountInput.value.replace(/,/g, '')) || 0;
                 const email = emailInput.value;
+                const name = nameInput.value;
                 const product = productSelect.options[productSelect.selectedIndex].text.split(' - ')[0];
                 
-                // Generate a unique transaction reference
-                const txnRef = 'GrowNet_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+                // Generate a more unique transaction reference
+                const txnRef = 'GN_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                
+                // Show loading state
+                const statusDiv = document.getElementById('paymentStatus');
+                statusDiv.className = 'payment-status';
+                statusDiv.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Initializing payment gateway...</p>';
+                statusDiv.style.display = 'block';
                 
                 if (paymentMethod === 'inline') {
-                    // Inline Checkout
+                    // Enhanced Inline Checkout with all required fields
                     const paymentRequest = {
                         merchant_code: "MX257627",          
                         pay_item_id: "Default_Payable_MX257627",
@@ -984,27 +1123,55 @@
                         txn_ref: txnRef,
                         site_redirect_url: window.location.href,
                         amount: amount * 100, // Convert to kobo
-                        currency: 566, // NGN
+                        currency: 566, // NGN - Nigerian Naira
                         cust_email: email,
+                        cust_name: name,
+                        cust_id: "cust_" + Date.now(),
                         mode: 'TEST',
                         onComplete: paymentCallback
                     };
                     
-                    window.webpayCheckout(paymentRequest);
+                    console.log('Payment request:', paymentRequest);
+                    
+                    // Add error handling for Interswitch script
+                    try {
+                        if (typeof window.webpayCheckout === 'function') {
+                            window.webpayCheckout(paymentRequest);
+                        } else {
+                            throw new Error('Interswitch payment script not loaded properly');
+                        }
+                    } catch (error) {
+                        console.error('Payment error:', error);
+                        statusDiv.className = 'payment-status payment-error';
+                        statusDiv.innerHTML = `
+                            <h4><i class="fas fa-exclamation-triangle"></i> Payment Gateway Error</h4>
+                            <p>Unable to initialize payment gateway. This could be due to:</p>
+                            <ul style="text-align: left; margin: 10px 0;">
+                                <li>Network connectivity issues</li>
+                                <li>Browser blocking the payment popup</li>
+                                <li>Temporary service unavailability</li>
+                            </ul>
+                            <p>Please try the "Demo Payment" button for testing, or try again later.</p>
+                            <p>Error details: ${error.message}</p>
+                        `;
+                    }
+                    
                 } else {
-                    // Web Redirect - create a form and submit it
+                    // Web Redirect method
                     const form = document.createElement('form');
                     form.method = 'post';
                     form.action = 'https://newwebpay.qa.interswitchng.com/collections/w/pay';
+                    form.style.display = 'none';
                     
                     const fields = {
                         merchant_code: "MX257627",
                         pay_item_id: "Default_Payable_MX257627",
                         site_redirect_url: window.location.href,
                         txn_ref: txnRef,
-                        amount: amount * 100, // Convert to kobo
+                        amount: amount * 100,
                         currency: 566,
                         cust_email: email,
+                        cust_name: name,
                         pay_item_name: product
                     };
                     
@@ -1020,8 +1187,28 @@
                 }
             }
             
-            // Initialize with default amount
+            // Test Interswitch connection
+            function testInterswitchConnection() {
+                setTimeout(() => {
+                    if (typeof window.webpayCheckout !== 'function') {
+                        console.warn('Interswitch script not loaded - this may affect payment functionality');
+                        const statusDiv = document.getElementById('paymentStatus');
+                        statusDiv.className = 'payment-status payment-error';
+                        statusDiv.innerHTML = `
+                            <h4><i class="fas fa-info-circle"></i> Payment Notice</h4>
+                            <p>Interswitch payment gateway is currently experiencing issues.</p>
+                            <p>Please use the "Demo Payment" button to test the payment flow.</p>
+                        `;
+                        statusDiv.style.display = 'block';
+                    } else {
+                        console.log('Interswitch payment gateway is ready');
+                    }
+                }, 3000);
+            }
+            
+            // Initialize with default amount and test connection
             calculateAmount();
+            testInterswitchConnection();
         });
     </script>
 </body>
