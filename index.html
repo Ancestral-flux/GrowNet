@@ -1920,7 +1920,7 @@
             paymentStatus.classList.remove('active');
         }
 
-        // Process payment using Interswitch Inline Checkout with fallback
+        // Process payment using Interswitch Inline Checkout
         function processPayment() {
             // Validate form
             if (!customerName.value || !customerEmail.value || !customerPhone.value) {
@@ -1931,42 +1931,6 @@
             const totalAmount = calculateCartTotal();
             const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
             
-            // Show payment processing
-            paymentStatus.innerHTML = `
-                <div class="payment-success">
-                    <i class="fas fa-spinner fa-spin"></i> Processing Payment...
-                </div>
-                <p>Amount: ₦${totalAmount}</p>
-                <p>This is a demo. In a real implementation, you would be redirected to Interswitch payment gateway.</p>
-            `;
-            paymentStatus.classList.add('active');
-            
-            // Simulate payment processing
-            setTimeout(() => {
-                // Simulate successful payment
-                paymentStatus.innerHTML = `
-                    <div class="payment-success">
-                        <i class="fas fa-check-circle"></i> Payment Successful (Demo)!
-                    </div>
-                    <p>Transaction Reference: DEMO_${Date.now()}</p>
-                    <p>Amount Paid: ₦${totalAmount}</p>
-                    <p>Thank you for your purchase. Your order will be processed shortly.</p>
-                    <button class="cta-button" style="margin-top: 15px;" id="continueShopping">Continue Shopping</button>
-                `;
-                
-                // Clear cart after successful payment
-                cart = [];
-                updateCartDisplay();
-                
-                // Add event listener to continue shopping button
-                document.getElementById('continueShopping').addEventListener('click', function() {
-                    paymentGateway.classList.remove('active');
-                    overlay.classList.remove('active');
-                });
-            }, 3000);
-            
-            // Uncomment the following code if you want to try Interswitch integration
-            /*
             // Generate a unique transaction reference
             const txnRef = 'GrowNet_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
             
@@ -1986,8 +1950,17 @@
                     </div>
                     <p>Payment gateway not loaded. Please refresh the page.</p>
                 `;
+                paymentStatus.classList.add('active');
                 return;
             }
+            
+            // Show processing message
+            paymentStatus.innerHTML = `
+                <div class="payment-success">
+                    <i class="fas fa-spinner fa-spin"></i> Initializing payment...
+                </div>
+            `;
+            paymentStatus.classList.add('active');
             
             // Interswitch payment configuration
             const paymentRequest = {
@@ -1995,13 +1968,13 @@
                 pay_item_id: "5558761",
                 txn_ref: txnRef,
                 site_redirect_url: window.location.href,
-                amount: totalAmount * 100,
-                currency: 566,
+                amount: totalAmount * 100, // Convert to kobo
+                currency: 566, // NGN currency code
                 cust_name: customerName.value,
                 cust_email: customerEmail.value,
                 cust_id: customerPhone.value,
                 pay_item_name: "GrowNet Agricultural Products",
-                mode: 'TEST', // Use TEST mode for debugging
+                mode: 'TEST', // Use TEST mode first, change to LIVE when ready
                 onComplete: paymentCallback
             };
             
@@ -2017,12 +1990,17 @@
                         <i class="fas fa-times-circle"></i> Payment Error
                     </div>
                     <p>Error: ${error.message}</p>
+                    <button class="cta-button" style="margin-top: 15px;" id="tryAgain">Try Again</button>
                 `;
+                
+                // Add event listener to try again button
+                document.getElementById('tryAgain').addEventListener('click', function() {
+                    paymentStatus.classList.remove('active');
+                });
             }
-            */
         }
 
-        // Payment callback function (for Interswitch integration)
+        // Payment callback function
         function paymentCallback(response) {
             console.log('Payment response:', response);
             
