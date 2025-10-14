@@ -1274,7 +1274,7 @@
     <div class="overlay" id="overlay"></div>
 
     <!-- Interswitch Inline Checkout Script -->
-    <script src="https://newwebpay.qa.interswitchng.com/inline-checkout.js"></script>
+    <script src="https://webpay.interswitchng.com/inline-checkout.js"></script>
     
     <script>
         // Product data with realistic prices and options
@@ -1396,13 +1396,13 @@
             {
                 id: 10,
                 name: "Eggs",
-                price: 1200,
+                price: 10,
                 image: "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
                 description: "Fresh farm eggs from free-range chickens.",
                 options: [
-                    { unit: "Crate (30 eggs)", price: 1200 },
-                    { unit: "Half Crate (15 eggs)", price: 650 },
-                    { unit: "5 eggs", price: 250 }
+                    { unit: "Crate (30 eggs)", price: 10 },
+                    { unit: "Half Crate (15 eggs)", price: 5 },
+                    { unit: "5 eggs", price: 2 }
                 ]
             }
         ];
@@ -1933,10 +1933,10 @@
             // Generate a unique transaction reference
             const txnRef = 'GrowNet_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
             
-            // Interswitch payment configuration with updated credentials
+            // Interswitch payment configuration with LIVE environment credentials
             const paymentRequest = {
-                merchant_code: "MX257627",          
-                pay_item_id: "Default_Payable_MX257627",
+                merchant_code: "MX153376",           // Updated merchant code
+                pay_item_id: "5558761",              // Pay Item ID for Hackathon Team 1
                 txn_ref: txnRef,
                 site_redirect_url: window.location.href,
                 amount: totalAmount * 100, // Convert to kobo (minor units)
@@ -1945,7 +1945,7 @@
                 cust_email: customerEmail.value,
                 cust_id: customerPhone.value,
                 pay_item_name: "GrowNet Agricultural Products",
-                mode: 'TEST', // Change to 'LIVE' for production
+                mode: 'LIVE', // Changed to LIVE environment
                 onComplete: paymentCallback
             };
             
