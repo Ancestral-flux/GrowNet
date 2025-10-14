@@ -1927,6 +1927,12 @@
                 alert('Please fill in all required fields');
                 return;
             }
+            // Validate email format
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailPattern.test(customerEmail.value)) {
+                alert('Please enter a valid email address');
+                return;
+            }
             
             const totalAmount = calculateCartTotal();
             const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
@@ -1950,19 +1956,21 @@
             paymentStatus.classList.add('active');
             
             // Interswitch payment configuration - FIXED
+            // Sample paymentRequest object for reference
             const paymentRequest = {
-                merchant_code: "MX153376",
-                pay_item_id: "5826784",
-                txn_ref: txnRef,
-                site_redirect_url: window.location.href,
-                amount: totalAmount * 100, // Convert to kobo
-                currency: 566, // NGN currency code
-                cust_name: customerName.value,
-                cust_email: customerEmail.value,
-                cust_id: customerPhone.value,
-                pay_item_name: "GrowNet Agricultural Products",
-                mode: 'LIVE', // Start with TEST mode
-                onComplete: paymentCallback
+                merchant_code: "MX153376",          // Your merchant code (required)
+                pay_item_id: "5826784",             // Your pay item ID (required)
+                pay_item_name: "GrowNet Agricultural Products", // Name of item (required for inline)
+                txn_ref: txnRef,                     // Unique transaction reference (required)
+                amount: totalAmount * 100,           // Amount in kobo (required)
+                currency: 566,                       // NGN currency code (required)
+                cust_name: customerName.value,       // Customer name (optional)
+                cust_email: customerEmail.value,     // Customer email (required)
+                cust_id: customerPhone.value,        // Customer ID (optional)
+                cust_mobile_no: customerPhone.value, // Customer mobile (optional)
+                site_redirect_url: window.location.href, // Redirect URL (recommended for inline)
+                mode: 'LIVE',                        // 'LIVE' for production, 'TEST' for sandbox
+                onComplete: paymentCallback          // Callback function (required)
             };
             
             console.log('Calling webpayCheckout with:', paymentRequest);
