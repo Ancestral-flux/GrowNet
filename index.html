@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GrowNet - Agricultural Marketplace</title>
-    <link rel="icon" type="image/x-icon" href="seed.jpeg">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌱</text></svg>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Your existing CSS styles remain exactly the same */
         * {
             margin: 0;
             padding: 0;
@@ -111,6 +112,7 @@
             position: relative;
             font-size: 1.2rem;
             color: var(--primary);
+            cursor: pointer;
         }
         
         .cart-count {
@@ -1276,7 +1278,6 @@
     <!-- Interswitch Inline Checkout Script -->
     <script src="https://newwebpay.interswitchgroup.com/inline-checkout.js"></script>
 
-    
     <script>
         // Product data with realistic prices and options
         const products = [
@@ -1941,19 +1942,6 @@
                 pay_item_id: "5558761"
             });
             
-            // Check if Interswitch is loaded
-            if (typeof window.webpayCheckout === 'undefined') {
-                console.error('Interswitch webpayCheckout is not defined');
-                paymentStatus.innerHTML = `
-                    <div class="payment-error">
-                        <i class="fas fa-times-circle"></i> Payment System Error
-                    </div>
-                    <p>Payment gateway not loaded. Please refresh the page.</p>
-                `;
-                paymentStatus.classList.add('active');
-                return;
-            }
-            
             // Show processing message
             paymentStatus.innerHTML = `
                 <div class="payment-success">
@@ -1962,7 +1950,7 @@
             `;
             paymentStatus.classList.add('active');
             
-            // Interswitch payment configuration
+            // Interswitch payment configuration - FIXED
             const paymentRequest = {
                 merchant_code: "MX153376",
                 pay_item_id: "5558761",
@@ -1974,11 +1962,25 @@
                 cust_email: customerEmail.value,
                 cust_id: customerPhone.value,
                 pay_item_name: "GrowNet Agricultural Products",
-                mode: 'LIVE', // Use TEST mode first, change to LIVE when ready
+                mode: 'TEST', // Start with TEST mode
                 onComplete: paymentCallback
             };
             
             console.log('Calling webpayCheckout with:', paymentRequest);
+            
+            // Check if Interswitch is loaded
+            if (typeof window.webpayCheckout === 'undefined') {
+                console.error('Interswitch webpayCheckout is not defined');
+                paymentStatus.innerHTML = `
+                    <div class="payment-error">
+                        <i class="fas fa-times-circle"></i> Payment System Error
+                    </div>
+                    <p>Payment gateway not loaded. Please refresh the page.</p>
+                    <p>If the problem persists, contact support.</p>
+                `;
+                paymentStatus.classList.add('active');
+                return;
+            }
             
             try {
                 // Initiate Interswitch inline checkout
