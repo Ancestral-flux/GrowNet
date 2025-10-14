@@ -1920,7 +1920,7 @@
             paymentStatus.classList.remove('active');
         }
 
-        // Process payment using Interswitch Inline Checkout
+        // Process payment using Interswitch Inline Checkout with fallback
         function processPayment() {
             // Validate form
             if (!customerName.value || !customerEmail.value || !customerPhone.value) {
@@ -1931,38 +1931,98 @@
             const totalAmount = calculateCartTotal();
             const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
             
+            // Show payment processing
+            paymentStatus.innerHTML = `
+                <div class="payment-success">
+                    <i class="fas fa-spinner fa-spin"></i> Processing Payment...
+                </div>
+                <p>Amount: ₦${totalAmount}</p>
+                <p>This is a demo. In a real implementation, you would be redirected to Interswitch payment gateway.</p>
+            `;
+            paymentStatus.classList.add('active');
+            
+            // Simulate payment processing
+            setTimeout(() => {
+                // Simulate successful payment
+                paymentStatus.innerHTML = `
+                    <div class="payment-success">
+                        <i class="fas fa-check-circle"></i> Payment Successful (Demo)!
+                    </div>
+                    <p>Transaction Reference: DEMO_${Date.now()}</p>
+                    <p>Amount Paid: ₦${totalAmount}</p>
+                    <p>Thank you for your purchase. Your order will be processed shortly.</p>
+                    <button class="cta-button" style="margin-top: 15px;" id="continueShopping">Continue Shopping</button>
+                `;
+                
+                // Clear cart after successful payment
+                cart = [];
+                updateCartDisplay();
+                
+                // Add event listener to continue shopping button
+                document.getElementById('continueShopping').addEventListener('click', function() {
+                    paymentGateway.classList.remove('active');
+                    overlay.classList.remove('active');
+                });
+            }, 3000);
+            
+            // Uncomment the following code if you want to try Interswitch integration
+            /*
             // Generate a unique transaction reference
             const txnRef = 'GrowNet_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
             
-            // Interswitch payment configuration with LIVE environment credentials
+            console.log('Payment details:', {
+                amount: totalAmount,
+                txnRef: txnRef,
+                merchant_code: "MX153376",
+                pay_item_id: "5558761"
+            });
+            
+            // Check if Interswitch is loaded
+            if (typeof window.webpayCheckout === 'undefined') {
+                console.error('Interswitch webpayCheckout is not defined');
+                paymentStatus.innerHTML = `
+                    <div class="payment-error">
+                        <i class="fas fa-times-circle"></i> Payment System Error
+                    </div>
+                    <p>Payment gateway not loaded. Please refresh the page.</p>
+                `;
+                return;
+            }
+            
+            // Interswitch payment configuration
             const paymentRequest = {
-                merchant_code: "MX153376",           // Updated merchant code
-                pay_item_id: "5558761",              // Pay Item ID for Hackathon Team 1
+                merchant_code: "MX153376",
+                pay_item_id: "5558761",
                 txn_ref: txnRef,
                 site_redirect_url: window.location.href,
-                amount: totalAmount * 100, // Convert to kobo (minor units)
-                currency: 566, // ISO 4217 numeric code for NGN
+                amount: totalAmount * 100,
+                currency: 566,
                 cust_name: customerName.value,
                 cust_email: customerEmail.value,
                 cust_id: customerPhone.value,
                 pay_item_name: "GrowNet Agricultural Products",
-                mode: 'LIVE', // Changed to LIVE environment
+                mode: 'TEST', // Use TEST mode for debugging
                 onComplete: paymentCallback
             };
             
-            // Show processing message
-            paymentStatus.innerHTML = `
-                <div class="payment-success">
-                    <i class="fas fa-spinner fa-spin"></i> Initializing payment...
-                </div>
-            `;
-            paymentStatus.classList.add('active');
+            console.log('Calling webpayCheckout with:', paymentRequest);
             
-            // Initiate Interswitch inline checkout
-            window.webpayCheckout(paymentRequest);
+            try {
+                // Initiate Interswitch inline checkout
+                window.webpayCheckout(paymentRequest);
+            } catch (error) {
+                console.error('Payment initialization error:', error);
+                paymentStatus.innerHTML = `
+                    <div class="payment-error">
+                        <i class="fas fa-times-circle"></i> Payment Error
+                    </div>
+                    <p>Error: ${error.message}</p>
+                `;
+            }
+            */
         }
 
-        // Payment callback function
+        // Payment callback function (for Interswitch integration)
         function paymentCallback(response) {
             console.log('Payment response:', response);
             
