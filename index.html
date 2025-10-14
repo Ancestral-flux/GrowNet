@@ -1938,7 +1938,7 @@
                 amount: totalAmount,
                 txnRef: txnRef,
                 merchant_code: "MX153376",
-                pay_item_id: "5558761"
+                pay_item_id: "5826784"
             });
             
             // Show processing message
@@ -1952,7 +1952,7 @@
             // Interswitch payment configuration - FIXED
             const paymentRequest = {
                 merchant_code: "MX153376",
-                pay_item_id: "5558761",
+                pay_item_id: "5826784",
                 txn_ref: txnRef,
                 site_redirect_url: window.location.href,
                 amount: totalAmount * 100, // Convert to kobo
@@ -1961,7 +1961,7 @@
                 cust_email: customerEmail.value,
                 cust_id: customerPhone.value,
                 pay_item_name: "GrowNet Agricultural Products",
-                mode: 'TEST', // Start with TEST mode
+                mode: 'LIVE', // Start with TEST mode
                 onComplete: paymentCallback
             };
             
