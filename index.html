@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GrowNet - Agricultural Marketplace</title>
+    <link rel="icon" type="image/x-icon" href="seed.jpeg">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -346,6 +347,158 @@
             background: #e68900;
         }
         
+        /* Pre-Harvest Section */
+        .pre-harvest {
+            padding: 60px 0;
+            background-color: var(--white);
+        }
+        
+        .pre-harvest-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        
+        .pre-harvest-card {
+            background-color: var(--white);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-left: 4px solid var(--secondary);
+        }
+        
+        .pre-harvest-header {
+            background: var(--light);
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .pre-harvest-badge {
+            background: var(--secondary);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .harvest-date {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .pre-harvest-info {
+            padding: 20px;
+        }
+        
+        .quantity-options {
+            margin: 15px 0;
+        }
+        
+        .quantity-option {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .quantity-option:last-child {
+            border-bottom: none;
+        }
+        
+        /* Product Selection Modal */
+        .product-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1001;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .product-modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 25px;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .quantity-selector {
+            margin: 20px 0;
+        }
+        
+        .quantity-option-select {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .quantity-option-select:hover {
+            border-color: var(--primary);
+            background: var(--light);
+        }
+        
+        .quantity-option-select.selected {
+            border-color: var(--primary);
+            background: var(--light);
+        }
+        
+        .option-price {
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .quantity-input {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .quantity-input input {
+            width: 80px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
         /* Cart Sidebar */
         .cart-sidebar {
             position: fixed;
@@ -407,6 +560,12 @@
         
         .cart-item-title {
             font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .cart-item-variant {
+            font-size: 0.85rem;
+            color: #666;
             margin-bottom: 5px;
         }
         
@@ -802,6 +961,7 @@
                 <ul>
                     <li><a href="#home">Home</a></li>
                     <li><a href="#products">Products</a></li>
+                    <li><a href="#pre-harvest">Pre-Harvest</a></li>
                     <li><a href="#how-it-works">How It Works</a></li>
                     <li><a href="#testimonials">Testimonials</a></li>
                 </ul>
@@ -825,6 +985,7 @@
             <ul>
                 <li><a href="#home">Home</a></li>
                 <li><a href="#products">Products</a></li>
+                <li><a href="#pre-harvest">Pre-Harvest</a></li>
                 <li><a href="#how-it-works">How It Works</a></li>
                 <li><a href="#testimonials">Testimonials</a></li>
                 <li><button class="cta-button" style="width: 100%; margin-top: 10px;" id="mobileJoinBtn">Join Now</button></li>
@@ -865,6 +1026,10 @@
                     <i class="fas fa-wine-bottle"></i>
                     <h3>Processed</h3>
                 </div>
+                <div class="category-card">
+                    <i class="fas fa-paw"></i>
+                    <h3>Livestock</h3>
+                </div>
             </div>
         </div>
     </section>
@@ -878,6 +1043,19 @@
             </div>
             <div class="products-grid" id="productsGrid">
                 <!-- Products will be loaded here by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Pre-Harvest Section -->
+    <section class="pre-harvest" id="pre-harvest">
+        <div class="container">
+            <div class="section-title">
+                <h2>Pre-Harvest Listings</h2>
+                <p>Reserve farm-fresh products before they're harvested</p>
+            </div>
+            <div class="pre-harvest-grid" id="preHarvestGrid">
+                <!-- Pre-harvest products will be loaded here by JavaScript -->
             </div>
         </div>
     </section>
@@ -987,6 +1165,7 @@
                     <ul>
                         <li><a href="#home">Home</a></li>
                         <li><a href="#products">Products</a></li>
+                        <li><a href="#pre-harvest">Pre-Harvest</a></li>
                         <li><a href="#how-it-works">How It Works</a></li>
                         <li><a href="#testimonials">Testimonials</a></li>
                     </ul>
@@ -1015,6 +1194,21 @@
             </div>
         </div>
     </footer>
+
+    <!-- Product Selection Modal -->
+    <div class="product-modal" id="productModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalProductTitle">Select Options</h3>
+                <button class="close-modal" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="modalProductContent">
+                <!-- Product options will be loaded here -->
+            </div>
+        </div>
+    </div>
 
     <!-- Cart Sidebar -->
     <div class="cart-sidebar" id="cartSidebar">
@@ -1083,54 +1277,221 @@
     <script src="https://newwebpay.qa.interswitchng.com/inline-checkout.js"></script>
     
     <script>
-        // Product data with images
+        // Product data with realistic prices and options
         const products = [
             {
                 id: 1,
                 name: "Fresh Maize",
-                price: 100,
+                price: 1500,
                 image: "https://foodieng.com/wp-content/uploads/2022/05/yellow-maiz.jpg",
-                description: "Freshly harvested maize, perfect for cooking or roasting."
+                description: "Freshly harvested maize, perfect for cooking or roasting.",
+                options: [
+                    { unit: "50kg bag", price: 15000 },
+                    { unit: "25kg bag", price: 8000 },
+                    { unit: "10kg bag", price: 3500 },
+                    { unit: "1kg", price: 400 }
+                ]
             },
             {
                 id: 2,
                 name: "Premium Rice",
-                price: 100,
+                price: 2500,
                 image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-                description: "High-quality locally grown rice, perfect for daily meals."
+                description: "High-quality locally grown rice, perfect for daily meals.",
+                options: [
+                    { unit: "50kg bag", price: 25000 },
+                    { unit: "25kg bag", price: 13000 },
+                    { unit: "10kg bag", price: 5500 },
+                    { unit: "1kg", price: 600 }
+                ]
             },
             {
                 id: 3,
                 name: "Fresh Tomatoes",
-                price: 100,
+                price: 800,
                 image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-                description: "Fresh, ripe tomatoes from local farms."
+                description: "Fresh, ripe tomatoes from local farms.",
+                options: [
+                    { unit: "Basket (20kg)", price: 8000 },
+                    { unit: "Half Basket (10kg)", price: 4500 },
+                    { unit: "5kg", price: 2500 },
+                    { unit: "1kg", price: 600 }
+                ]
             },
             {
                 id: 4,
                 name: "Beans",
-                price: 100,
+                price: 1200,
                 image: "https://www.pricepally.com/_next/image?url=https%3A%2F%2Fpp-new-node-medusa-prod-bucket.s3.us-east-1.amazonaws.com%2FBeans%20-%20Oloyin%20General-1725272084456.jpg&w=1920&q=75",
-                description: "Nutritious beans, rich in protein and fiber."
+                description: "Nutritious beans, rich in protein and fiber.",
+                options: [
+                    { unit: "50kg bag", price: 12000 },
+                    { unit: "25kg bag", price: 6500 },
+                    { unit: "10kg bag", price: 2800 },
+                    { unit: "1kg", price: 350 }
+                ]
             },
             {
                 id: 5,
                 name: "Cassava",
-                price: 100,
+                price: 500,
                 image: "https://greenhillsfarmstead.com/wp-content/uploads/2021/07/FACTS-1-1024x1024.png",
-                description: "Fresh cassava, perfect for making garri and other dishes."
+                description: "Fresh cassava, perfect for making garri and other dishes.",
+                options: [
+                    { unit: "100kg", price: 5000 },
+                    { unit: "50kg", price: 2800 },
+                    { unit: "25kg", price: 1500 },
+                    { unit: "10kg", price: 700 }
+                ]
             },
             {
                 id: 6,
                 name: "Yam",
-                price: 100,
+                price: 1200,
                 image: "https://i0.wp.com/wangaraufoods.com/wp-content/uploads/2023/09/Benue-Yam.jpg?resize=600%2C600&ssl=1",
-                description: "Fresh yam tubers, great for boiling, frying or pounding."
+                description: "Fresh yam tubers, great for boiling, frying or pounding.",
+                options: [
+                    { unit: "100kg", price: 12000 },
+                    { unit: "50kg", price: 6500 },
+                    { unit: "25kg", price: 3500 },
+                    { unit: "10kg", price: 1500 }
+                ]
+            },
+            {
+                id: 7,
+                name: "Goat",
+                price: 25000,
+                image: "https://www.greeneeds.com/blog/wp-content/uploads/2022/09/Goat-far-business.jpg",
+                description: "Healthy adult goat ready for sale.",
+                options: [
+                    { unit: "Small (15-20kg)", price: 18000 },
+                    { unit: "Medium (20-25kg)", price: 25000 },
+                    { unit: "Large (25-30kg)", price: 32000 }
+                ]
+            },
+            {
+                id: 8,
+                name: "Chicken",
+                price: 2500,
+                image: "https://market.babsfarms-ltd.com/wp-content/uploads/2025/04/Live-Chicken-670x601.png",
+                description: "Fresh chicken from free-range farms.",
+                options: [
+                    { unit: "1 Bird (1.5-2kg)", price: 2500 },
+                    { unit: "5 Birds", price: 12000 },
+                    { unit: "10 Birds", price: 23000 }
+                ]
+            },
+            {
+                id: 9,
+                name: "Turkey",
+                price: 15000,
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Male_wild_turkey_%28Meleagris_gallopavo%29_strutting.jpg/250px-Male_wild_turkey_%28Meleagris_gallopavo%29_strutting.jpg",
+                description: "Premium turkey for special occasions.",
+                options: [
+                    { unit: "Small (5-7kg)", price: 15000 },
+                    { unit: "Medium (7-10kg)", price: 22000 },
+                    { unit: "Large (10-12kg)", price: 28000 }
+                ]
+            },
+            {
+                id: 10,
+                name: "Eggs",
+                price: 1200,
+                image: "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+                description: "Fresh farm eggs from free-range chickens.",
+                options: [
+                    { unit: "Crate (30 eggs)", price: 1200 },
+                    { unit: "Half Crate (15 eggs)", price: 650 },
+                    { unit: "5 eggs", price: 250 }
+                ]
+            }
+        ];
+
+        // Pre-harvest products with realistic prices
+        const preHarvestProducts = [
+            {
+                id: 101,
+                name: "Pre-Harvest Maize",
+                price: 1200,
+                image: "https://foodieng.com/wp-content/uploads/2022/05/yellow-maiz.jpg",
+                description: "Reserve your maize harvest now. Expected harvest in 3 weeks.",
+                harvestDate: "2023-12-15",
+                options: [
+                    { unit: "50kg bag", price: 12000 },
+                    { unit: "25kg bag", price: 6500 },
+                    { unit: "10kg bag", price: 2800 }
+                ]
+            },
+            {
+                id: 102,
+                name: "Pre-Harvest Rice",
+                price: 2000,
+                image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+                description: "Reserve premium rice. Expected harvest in 4 weeks.",
+                harvestDate: "2023-12-20",
+                options: [
+                    { unit: "50kg bag", price: 20000 },
+                    { unit: "25kg bag", price: 10500 },
+                    { unit: "10kg bag", price: 4500 }
+                ]
+            },
+            {
+                id: 103,
+                name: "Pre-Harvest Tomatoes",
+                price: 600,
+                image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+                description: "Reserve fresh tomatoes. Expected harvest in 2 weeks.",
+                harvestDate: "2023-12-10",
+                options: [
+                    { unit: "Basket (20kg)", price: 6000 },
+                    { unit: "Half Basket (10kg)", price: 3500 },
+                    { unit: "5kg", price: 2000 }
+                ]
+            },
+            {
+                id: 104,
+                name: "Goat (Livestock)",
+                price: 25000,
+                image: "https://www.greeneeds.com/blog/wp-content/uploads/2022/09/Goat-far-business.jpg",
+                description: "Healthy adult goat ready for sale.",
+                harvestDate: "Available Now",
+                options: [
+                    { unit: "Small (15-20kg)", price: 18000 },
+                    { unit: "Medium (20-25kg)", price: 25000 },
+                    { unit: "Large (25-30kg)", price: 32000 }
+                ]
+            },
+            {
+                id: 105,
+                name: "Chicken (Livestock)",
+                price: 2500,
+                image: "https://market.babsfarms-ltd.com/wp-content/uploads/2025/04/Live-Chicken-670x601.png",
+                description: "Fresh chicken from free-range farms.",
+                harvestDate: "Available Now",
+                options: [
+                    { unit: "1 Bird (1.5-2kg)", price: 2500 },
+                    { unit: "5 Birds", price: 12000 },
+                    { unit: "10 Birds", price: 23000 }
+                ]
+            },
+            {
+                id: 106,
+                name: "Turkey (Livestock)",
+                price: 15000,
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Male_wild_turkey_%28Meleagris_gallopavo%29_strutting.jpg/250px-Male_wild_turkey_%28Meleagris_gallopavo%29_strutting.jpg",
+                description: "Premium turkey for special occasions.",
+                harvestDate: "Available Now",
+                options: [
+                    { unit: "Small (5-7kg)", price: 15000 },
+                    { unit: "Medium (7-10kg)", price: 22000 },
+                    { unit: "Large (10-12kg)", price: 28000 }
+                ]
             }
         ];
 
         // Cart functionality
         let cart = [];
+        let currentProduct = null;
         const cartIcon = document.getElementById('cartIcon');
         const cartSidebar = document.getElementById('cartSidebar');
         const closeCart = document.getElementById('closeCart');
@@ -1140,6 +1501,11 @@
         const cartCount = document.querySelector('.cart-count');
         const checkoutBtn = document.getElementById('checkoutBtn');
         const productsGrid = document.getElementById('productsGrid');
+        const preHarvestGrid = document.getElementById('preHarvestGrid');
+        const productModal = document.getElementById('productModal');
+        const closeModal = document.getElementById('closeModal');
+        const modalProductTitle = document.getElementById('modalProductTitle');
+        const modalProductContent = document.getElementById('modalProductContent');
         
         // Payment gateway elements
         const paymentGateway = document.getElementById('paymentGateway');
@@ -1199,6 +1565,7 @@
                 cartSidebar.classList.remove('active');
                 overlay.classList.remove('active');
                 paymentGateway.classList.remove('active');
+                productModal.classList.remove('active');
             });
             
             checkoutBtn.addEventListener('click', function() {
@@ -1221,8 +1588,15 @@
                 processPayment();
             });
             
+            // Modal functionality
+            closeModal.addEventListener('click', function() {
+                productModal.classList.remove('active');
+                overlay.classList.remove('active');
+            });
+            
             // Load products
             loadProducts();
+            loadPreHarvestProducts();
         });
 
         // Load products into the grid
@@ -1237,7 +1611,7 @@
                     <div class="product-info">
                         <h3 class="product-title">${product.name}</h3>
                         <p class="product-description">${product.description}</p>
-                        <div class="product-price">₦${product.price}</div>
+                        <div class="product-price">From ₦${product.price}</div>
                         <div class="product-actions">
                             <button class="add-to-cart" data-id="${product.id}">Add to Cart</button>
                             <button class="buy-now" data-id="${product.id}">Buy Now</button>
@@ -1252,36 +1626,171 @@
             document.querySelectorAll('.add-to-cart').forEach(button => {
                 button.addEventListener('click', function() {
                     const productId = parseInt(this.getAttribute('data-id'));
-                    addToCart(productId);
+                    showProductOptions(productId, false);
                 });
             });
             
             document.querySelectorAll('.buy-now').forEach(button => {
                 button.addEventListener('click', function() {
                     const productId = parseInt(this.getAttribute('data-id'));
-                    addToCart(productId);
-                    cartSidebar.classList.add('active');
-                    overlay.classList.add('active');
+                    showProductOptions(productId, true);
                 });
             });
         }
 
-        // Add product to cart
-        function addToCart(productId) {
-            const product = products.find(p => p.id === productId);
+        // Load pre-harvest products
+        function loadPreHarvestProducts() {
+            preHarvestGrid.innerHTML = '';
             
-            // Check if product is already in cart
-            const existingItem = cart.find(item => item.id === productId);
+            preHarvestProducts.forEach(product => {
+                const preHarvestCard = document.createElement('div');
+                preHarvestCard.className = 'pre-harvest-card';
+                preHarvestCard.innerHTML = `
+                    <div class="pre-harvest-header">
+                        <span class="pre-harvest-badge">Pre-Harvest</span>
+                        <span class="harvest-date">Harvest: ${product.harvestDate}</span>
+                    </div>
+                    <img src="${product.image}" alt="${product.name}" class="product-image">
+                    <div class="pre-harvest-info">
+                        <h3 class="product-title">${product.name}</h3>
+                        <p class="product-description">${product.description}</p>
+                        <div class="product-price">From ₦${product.price}</div>
+                        <div class="quantity-options">
+                            ${product.options.map(option => `
+                                <div class="quantity-option">
+                                    <span>${option.unit}</span>
+                                    <span class="option-price">₦${option.price}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="product-actions">
+                            <button class="add-to-cart" data-id="${product.id}" data-preharvest="true">Reserve Now</button>
+                        </div>
+                    </div>
+                `;
+                
+                preHarvestGrid.appendChild(preHarvestCard);
+            });
             
-            if (existingItem) {
-                existingItem.quantity += 1;
+            // Add event listeners to pre-harvest buttons
+            document.querySelectorAll('.pre-harvest-card .add-to-cart').forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = parseInt(this.getAttribute('data-id'));
+                    const isPreHarvest = this.getAttribute('data-preharvest') === 'true';
+                    showProductOptions(productId, false, isPreHarvest);
+                });
+            });
+        }
+
+        // Show product options modal
+        function showProductOptions(productId, buyNow = false, isPreHarvest = false) {
+            const productList = isPreHarvest ? preHarvestProducts : products;
+            const product = productList.find(p => p.id === productId);
+            
+            if (!product) return;
+            
+            currentProduct = {
+                ...product,
+                isPreHarvest
+            };
+            
+            modalProductTitle.textContent = `Select ${product.name} Options`;
+            
+            modalProductContent.innerHTML = `
+                <img src="${product.image}" alt="${product.name}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 20px;">
+                <p>${product.description}</p>
+                ${isPreHarvest ? `<p><strong>Harvest Date:</strong> ${product.harvestDate}</p>` : ''}
+                
+                <div class="quantity-selector">
+                    <h4>Select Quantity/Size:</h4>
+                    ${product.options.map((option, index) => `
+                        <div class="quantity-option-select ${index === 0 ? 'selected' : ''}" data-price="${option.price}" data-unit="${option.unit}">
+                            <span>${option.unit}</span>
+                            <span class="option-price">₦${option.price}</span>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div class="quantity-input">
+                    <label>Quantity:</label>
+                    <input type="number" id="productQuantity" value="1" min="1">
+                </div>
+                
+                <div style="margin-top: 20px; font-weight: 600; font-size: 1.2rem;">
+                    Total: ₦<span id="modalTotalPrice">${product.options[0].price}</span>
+                </div>
+                
+                <button class="cta-button" style="width: 100%; margin-top: 20px;" id="addToCartModal">
+                    ${buyNow ? 'Buy Now' : (isPreHarvest ? 'Reserve Now' : 'Add to Cart')}
+                </button>
+            `;
+            
+            // Add event listeners to quantity options
+            document.querySelectorAll('.quantity-option-select').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.quantity-option-select').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    this.classList.add('selected');
+                    updateModalTotalPrice();
+                });
+            });
+            
+            // Add event listener to quantity input
+            document.getElementById('productQuantity').addEventListener('input', updateModalTotalPrice);
+            
+            // Add event listener to add to cart button
+            document.getElementById('addToCartModal').addEventListener('click', function() {
+                addToCartFromModal(buyNow);
+            });
+            
+            // Show modal
+            productModal.classList.add('active');
+            overlay.classList.add('active');
+        }
+
+        // Update modal total price
+        function updateModalTotalPrice() {
+            const selectedOption = document.querySelector('.quantity-option-select.selected');
+            const quantity = parseInt(document.getElementById('productQuantity').value) || 1;
+            const price = parseInt(selectedOption.getAttribute('data-price'));
+            const total = price * quantity;
+            
+            document.getElementById('modalTotalPrice').textContent = total;
+        }
+
+        // Add product to cart from modal
+        function addToCartFromModal(buyNow = false) {
+            if (!currentProduct) return;
+            
+            const selectedOption = document.querySelector('.quantity-option-select.selected');
+            const quantity = parseInt(document.getElementById('productQuantity').value) || 1;
+            const unit = selectedOption.getAttribute('data-unit');
+            const price = parseInt(selectedOption.getAttribute('data-price'));
+            const total = price * quantity;
+            
+            // Check if product with same options is already in cart
+            const existingItemIndex = cart.findIndex(item => 
+                item.id === currentProduct.id && 
+                item.unit === unit &&
+                item.isPreHarvest === currentProduct.isPreHarvest
+            );
+            
+            if (existingItemIndex !== -1) {
+                // Update quantity of existing item
+                cart[existingItemIndex].quantity += quantity;
+                cart[existingItemIndex].total = cart[existingItemIndex].price * cart[existingItemIndex].quantity;
             } else {
+                // Add new item to cart
                 cart.push({
-                    id: product.id,
-                    name: product.name,
-                    price: product.price,
-                    image: product.image,
-                    quantity: 1
+                    id: currentProduct.id,
+                    name: currentProduct.name,
+                    price: price,
+                    total: total,
+                    image: currentProduct.image,
+                    quantity: quantity,
+                    unit: unit,
+                    isPreHarvest: currentProduct.isPreHarvest
                 });
             }
             
@@ -1289,7 +1798,7 @@
             
             // Show confirmation
             const notification = document.createElement('div');
-            notification.textContent = `${product.name} added to cart!`;
+            notification.textContent = `${currentProduct.name} added to cart!`;
             notification.style.cssText = `
                 position: fixed;
                 top: 20px;
@@ -1306,6 +1815,16 @@
             setTimeout(() => {
                 document.body.removeChild(notification);
             }, 3000);
+            
+            // Close modal
+            productModal.classList.remove('active');
+            overlay.classList.remove('active');
+            
+            // If buy now, open cart
+            if (buyNow) {
+                cartSidebar.classList.add('active');
+                overlay.classList.add('active');
+            }
         }
 
         // Update cart display
@@ -1326,12 +1845,13 @@
                     cartItem.innerHTML = `
                         <img src="${item.image}" alt="${item.name}" class="cart-item-image">
                         <div class="cart-item-details">
-                            <h4 class="cart-item-title">${item.name}</h4>
+                            <h4 class="cart-item-title">${item.name} ${item.isPreHarvest ? '(Pre-Harvest)' : ''}</h4>
+                            <div class="cart-item-variant">${item.unit}</div>
                             <div class="cart-item-price">₦${item.price} x ${item.quantity}</div>
                             <div class="cart-item-quantity">
-                                <button class="quantity-btn" data-id="${item.id}" data-action="decrease">-</button>
+                                <button class="quantity-btn" data-id="${item.id}" data-unit="${item.unit}" data-action="decrease">-</button>
                                 <span>${item.quantity}</span>
-                                <button class="quantity-btn" data-id="${item.id}" data-action="increase">+</button>
+                                <button class="quantity-btn" data-id="${item.id}" data-unit="${item.unit}" data-action="increase">+</button>
                             </div>
                         </div>
                     `;
@@ -1342,8 +1862,9 @@
                 document.querySelectorAll('.quantity-btn').forEach(button => {
                     button.addEventListener('click', function() {
                         const productId = parseInt(this.getAttribute('data-id'));
+                        const unit = this.getAttribute('data-unit');
                         const action = this.getAttribute('data-action');
-                        updateQuantity(productId, action);
+                        updateQuantity(productId, unit, action);
                     });
                 });
             }
@@ -1353,16 +1874,20 @@
         }
 
         // Update item quantity in cart
-        function updateQuantity(productId, action) {
-            const item = cart.find(item => item.id === productId);
+        function updateQuantity(productId, unit, action) {
+            const itemIndex = cart.findIndex(item => item.id === productId && item.unit === unit);
+            
+            if (itemIndex === -1) return;
             
             if (action === 'increase') {
-                item.quantity += 1;
+                cart[itemIndex].quantity += 1;
+                cart[itemIndex].total = cart[itemIndex].price * cart[itemIndex].quantity;
             } else if (action === 'decrease') {
-                item.quantity -= 1;
+                cart[itemIndex].quantity -= 1;
+                cart[itemIndex].total = cart[itemIndex].price * cart[itemIndex].quantity;
                 
-                if (item.quantity <= 0) {
-                    cart = cart.filter(item => item.id !== productId);
+                if (cart[itemIndex].quantity <= 0) {
+                    cart.splice(itemIndex, 1);
                 }
             }
             
