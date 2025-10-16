@@ -1741,11 +1741,21 @@
         }
         
         if (isValid) {
-            // Simulate registration success
+        // Simulate registration success
+        const userType = document.getElementById('userType').value;
+        
+        if (userType === 'farmer') {
+            // Redirect farmers to verification page
+            setTimeout(() => {
+                window.location.href = 'farmer-verification.html';
+            }, 1000);
+            alert('Registration successful! Redirecting to farmer verification...');
+        } else {
             alert(`Registration successful! Welcome ${name} as a ${userType}.`);
             closeAuthModalFunc();
         }
     }
+}
     
     // Clear form errors
     function clearFormErrors() {
