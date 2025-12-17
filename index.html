@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GrowNet - Agricultural Marketplace</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+
     <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌱</text></svg>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -1581,8 +1586,48 @@
     <!-- Interswitch Inline Checkout Script -->
     <script src="https://newwebpay.interswitchng.com/inline-checkout.js"></script>
 
-    <script>
-     // Auth Modal Functionality
+<script>
+    // Firebase Configuration and Initialization
+    const firebaseConfig = {
+        apiKey: "AIzaSyAZ3LWTB1ZGAp1bQHKP5HJ57v5cQf-Ub50",
+        authDomain: "grownet-id.firebaseapp.com",
+        projectId: "grownet-id",
+        storageBucket: "grownet-id.firebasestorage.app",
+        messagingSenderId: "604886920916",
+        appId: "1:604886920916:web:222a5cb3a5154cfb83d541",
+        measurementId: "G-RMX5X6D3KW"
+    };
+
+    // Initialize Firebase
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Show notification function
+    function showNotification(message, type = 'success') {
+        const notification = document.createElement('div');
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#d4edda' : '#f8d7da'};
+            color: ${type === 'success' ? '#155724' : '#721c24'};
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 1001;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        `;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 3000);
+    }
+
+    // Auth Modal Functionality
     document.addEventListener('DOMContentLoaded', function() {
         // Get modal elements
         const authModal = document.getElementById('authModal');
@@ -1655,6 +1700,18 @@
         
         // Close modal when clicking on overlay
         overlay.addEventListener('click', closeAuthModalFunc);
+        
+        // Check auth state on page load
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // User is signed in
+                db.collection('users').doc(user.uid).get().then((doc) => {
+                    if (doc.exists()) {
+                        updateAuthUI(user, doc.data());
+                    }
+                });
+            }
+        });
     });
     
     // Open auth modal
@@ -1670,8 +1727,21 @@
         clearFormErrors();
     }
     
+    // Clear form errors
+    function clearFormErrors() {
+        document.querySelectorAll('.error-message').forEach(error => {
+            error.style.display = 'none';
+        });
+    }
+    
+    // Validate email format
+    function isValidEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+
     // Handle login
-    function handleLogin() {
+    async function handleLogin() {
         const email = document.getElementById('loginEmail').value;
         const password = document.getElementById('loginPassword').value;
         let isValid = true;
@@ -1692,14 +1762,29 @@
         }
         
         if (isValid) {
-            // Simulate login success
-            alert('Login successful!');
-            closeAuthModalFunc();
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+                
+                // Fetch user data from Firestore
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    
+                    // Update UI
+                    updateAuthUI(user, userData);
+                    closeAuthModalFunc();
+                    showNotification('Login successful!');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showNotification(`Login failed: ${error.message}`, 'error');
+            }
         }
     }
     
     // Handle registration
-    function handleRegister() {
+    async function handleRegister() {
         const name = document.getElementById('registerName').value;
         const email = document.getElementById('registerEmail').value;
         const password = document.getElementById('registerPassword').value;
@@ -1741,834 +1826,884 @@
         }
         
         if (isValid) {
-        // Simulate registration success
-        const userType = document.getElementById('userType').value;
-        
-        if (userType === 'farmer') {
-            // Redirect farmers to verification page
-            setTimeout(() => {
-                window.location.href = 'farmer-verification.html';
-            }, 1000);
-            alert('Registration successful! Redirecting to farmer verification...');
-        } else {
-            alert(`Registration successful! Welcome ${name} as a ${userType}.`);
-            closeAuthModalFunc();
+            try {
+                // Create user with Firebase Authentication
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+                
+                // Create user document in Firestore
+                await db.collection('users').doc(user.uid).set({
+                    uid: user.uid,
+                    email: user.email,
+                    name: name,
+                    role: userType,
+                    createdAt: new Date().toISOString(),
+                    verificationStatus: userType === 'farmer' ? 'pending' : 'verified',
+                    phone: '',
+                    address: '',
+                    state: '',
+                    city: '',
+                    farmName: '',
+                    farmSize: 0,
+                    farmLocation: '',
+                    farmAddress: '',
+                    yearsExperience: 0,
+                    mainProducts: ''
+                });
+                
+                // Handle redirection based on user type
+                if (userType === 'farmer') {
+                    showNotification('Registration successful! Redirecting to farmer verification...');
+                    setTimeout(() => {
+                        window.location.href = 'farmer-verification.html';
+                    }, 1000);
+                } else {
+                    showNotification(`Registration successful! Welcome ${name} as a ${userType}.`);
+                    closeAuthModalFunc();
+                    updateAuthUI(user, { name, role: userType });
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showNotification(`Registration failed: ${error.message}`, 'error');
+            }
         }
     }
-}
     
-    // Clear form errors
-    function clearFormErrors() {
-        document.querySelectorAll('.error-message').forEach(error => {
-            error.style.display = 'none';
-        });
-    }
-    
-    // Validate email format
-    function isValidEmail(email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
-    }
-        // Product data with realistic prices and options
-        const products = [
-            {
-                id: 1,
-                name: "Fresh Maize",
-                price: 1500,
-                image: "https://foodieng.com/wp-content/uploads/2022/05/yellow-maiz.jpg",
-                description: "Freshly harvested maize, perfect for cooking or roasting.",
-                options: [
-                    { unit: "50kg bag", price: 15000 },
-                    { unit: "25kg bag", price: 8000 },
-                    { unit: "10kg bag", price: 3500 },
-                    { unit: "1kg", price: 400 }
-                ]
-            },
-            {
-                id: 2,
-                name: "Premium Rice",
-                price: 2500,
-                image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-                description: "High-quality locally grown rice, perfect for daily meals.",
-                options: [
-                    { unit: "50kg bag", price: 25000 },
-                    { unit: "25kg bag", price: 13000 },
-                    { unit: "10kg bag", price: 5500 },
-                    { unit: "1kg", price: 600 }
-                ]
-            },
-            {
-                id: 3,
-                name: "Fresh Tomatoes",
-                price: 800,
-                image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-                description: "Fresh, ripe tomatoes from local farms.",
-                options: [
-                    { unit: "Basket (20kg)", price: 8000 },
-                    { unit: "Half Basket (10kg)", price: 4500 },
-                    { unit: "5kg", price: 2500 },
-                    { unit: "1kg", price: 600 }
-                ]
-            },
-            {
-                id: 4,
-                name: "Beans",
-                price: 1200,
-                image: "https://www.pricepally.com/_next/image?url=https%3A%2F%2Fpp-new-node-medusa-prod-bucket.s3.us-east-1.amazonaws.com%2FBeans%20-%20Oloyin%20General-1725272084456.jpg&w=1920&q=75",
-                description: "Nutritious beans, rich in protein and fiber.",
-                options: [
-                    { unit: "50kg bag", price: 12000 },
-                    { unit: "25kg bag", price: 6500 },
-                    { unit: "10kg bag", price: 2800 },
-                    { unit: "1kg", price: 350 }
-                ]
-            },
-            {
-                id: 5,
-                name: "Cassava",
-                price: 500,
-                image: "https://greenhillsfarmstead.com/wp-content/uploads/2021/07/FACTS-1-1024x1024.png",
-                description: "Fresh cassava, perfect for making garri and other dishes.",
-                options: [
-                    { unit: "100kg", price: 5000 },
-                    { unit: "50kg", price: 2800 },
-                    { unit: "25kg", price: 1500 },
-                    { unit: "10kg", price: 700 }
-                ]
-            },
-            {
-                id: 6,
-                name: "Yam",
-                price: 1200,
-                image: "https://i0.wp.com/wangaraufoods.com/wp-content/uploads/2023/09/Benue-Yam.jpg?resize=600%2C600&ssl=1",
-                description: "Fresh yam tubers, great for boiling, frying or pounding.",
-                options: [
-                    { unit: "100kg", price: 12000 },
-                    { unit: "50kg", price: 6500 },
-                    { unit: "25kg", price: 3500 },
-                    { unit: "10kg", price: 1500 }
-                ]
-            },
-            {
-                id: 7,
-                name: "Goat",
-                price: 25000,
-                image: "https://www.greeneeds.com/blog/wp-content/uploads/2022/09/Goat-far-business.jpg",
-                description: "Healthy adult goat ready for sale.",
-                options: [
-                    { unit: "Small (15-20kg)", price: 18000 },
-                    { unit: "Medium (20-25kg)", price: 25000 },
-                    { unit: "Large (25-30kg)", price: 32000 }
-                ]
-            },
-            {
-                id: 8,
-                name: "Chicken",
-                price: 2500,
-                image: "https://market.babsfarms-ltd.com/wp-content/uploads/2025/04/Live-Chicken-670x601.png",
-                description: "Fresh chicken from free-range farms.",
-                options: [
-                    { unit: "1 Bird (1.5-2kg)", price: 2500 },
-                    { unit: "5 Birds", price: 12000 },
-                    { unit: "10 Birds", price: 23000 }
-                ]
-            },
-            {
-                id: 9,
-                name: "Turkey",
-                price: 15000,
-                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Male_wild_turkey_%28Meleagris_gallopavo%29_strutting.jpg/250px-Male_wild_turkey_%28Meleagris_gallopavo%29_strutting.jpg",
-                description: "Premium turkey for special occasions.",
-                options: [
-                    { unit: "Small (5-7kg)", price: 15000 },
-                    { unit: "Medium (7-10kg)", price: 22000 },
-                    { unit: "Large (10-12kg)", price: 28000 }
-                ]
-            },
-            {
-                id: 10,
-                name: "Eggs",
-                price: 10,
-                image: "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-                description: "Fresh farm eggs from free-range chickens.",
-                options: [
-                    { unit: "Crate (30 eggs)", price: 10 },
-                    { unit: "Half Crate (15 eggs)", price: 5 },
-                    { unit: "5 eggs", price: 2 }
-                ]
-            }
-        ];
-
-        // Pre-harvest products with realistic prices
-        const preHarvestProducts = [
-            {
-                id: 101,
-                name: "Pre-Harvest Maize",
-                price: 1200,
-                image: "https://foodieng.com/wp-content/uploads/2022/05/yellow-maiz.jpg",
-                description: "Reserve your maize harvest now. Expected harvest in 3 weeks.",
-                harvestDate: "2025-12-15",
-                options: [
-                    { unit: "50kg bag", price: 12000 },
-                    { unit: "25kg bag", price: 6500 },
-                    { unit: "10kg bag", price: 2800 }
-                ]
-            },
-            {
-                id: 102,
-                name: "Pre-Harvest Rice",
-                price: 2000,
-                image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-                description: "Reserve premium rice. Expected harvest in 4 weeks.",
-                harvestDate: "2025-12-20",
-                options: [
-                    { unit: "50kg bag", price: 20000 },
-                    { unit: "25kg bag", price: 10500 },
-                    { unit: "10kg bag", price: 4500 }
-                ]
-            },
-            {
-                id: 103,
-                name: "Pre-Harvest Tomatoes",
-                price: 600,
-                image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-                description: "Reserve fresh tomatoes. Expected harvest in 2 weeks.",
-                harvestDate: "2025-12-10",
-                options: [
-                    { unit: "Basket (20kg)", price: 6000 },
-                    { unit: "Half Basket (10kg)", price: 3500 },
-                    { unit: "5kg", price: 2000 }
-                ]
-            },
-            {
-                id: 104,
-                name: "Goat (Livestock)",
-                price: 25000,
-                image: "https://www.greeneeds.com/blog/wp-content/uploads/2022/09/Goat-far-business.jpg",
-                description: "Healthy adult goat ready for sale.",
-                harvestDate: "Available Now",
-                options: [
-                    { unit: "Small (15-20kg)", price: 18000 },
-                    { unit: "Medium (20-25kg)", price: 25000 },
-                    { unit: "Large (25-30kg)", price: 32000 }
-                ]
-            },
-            {
-                id: 105,
-                name: "Chicken (Livestock)",
-                price: 2500,
-                image: "https://market.babsfarms-ltd.com/wp-content/uploads/2025/04/Live-Chicken-670x601.png",
-                description: "Fresh chicken from free-range farms.",
-                harvestDate: "Available Now",
-                options: [
-                    { unit: "1 Bird (1.5-2kg)", price: 2500 },
-                    { unit: "5 Birds", price: 12000 },
-                    { unit: "10 Birds", price: 23000 }
-                ]
-            },
-            {
-                id: 106,
-                name: "Turkey (Livestock)",
-                price: 15000,
-                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Male_wild_turkey_%28Meleagris_gallopavo%29_strutting.jpg/250px-Male_wild_turkey_%28Meleagris_gallopavo%29_strutting.jpg",
-                description: "Premium turkey for special occasions.",
-                harvestDate: "Available Now",
-                options: [
-                    { unit: "Small (5-7kg)", price: 15000 },
-                    { unit: "Medium (7-10kg)", price: 22000 },
-                    { unit: "Large (10-12kg)", price: 28000 }
-                ]
-            }
-        ];
-
-        // Cart functionality
-        let cart = [];
-        let currentProduct = null;
-        const cartIcon = document.getElementById('cartIcon');
-        const cartSidebar = document.getElementById('cartSidebar');
-        const closeCart = document.getElementById('closeCart');
-        const overlay = document.getElementById('overlay');
-        const cartItems = document.getElementById('cartItems');
-        const cartTotal = document.getElementById('cartTotal');
-        const cartCount = document.querySelector('.cart-count');
-        const checkoutBtn = document.getElementById('checkoutBtn');
-        const productsGrid = document.getElementById('productsGrid');
-        const preHarvestGrid = document.getElementById('preHarvestGrid');
-        const productModal = document.getElementById('productModal');
-        const closeModal = document.getElementById('closeModal');
-        const modalProductTitle = document.getElementById('modalProductTitle');
-        const modalProductContent = document.getElementById('modalProductContent');
+    // Function to update UI after authentication
+    function updateAuthUI(user, userData = null) {
+        const authButtons = document.querySelector('.header-actions');
         
-        // Payment gateway elements
-        const paymentGateway = document.getElementById('paymentGateway');
-        const closePayment = document.getElementById('closePayment');
-        const paymentItems = document.getElementById('paymentItems');
-        const paymentTotal = document.getElementById('paymentTotal');
-        const payButton = document.getElementById('payButton');
-        const paymentStatus = document.getElementById('paymentStatus');
-        const customerName = document.getElementById('customerName');
-        const customerEmail = document.getElementById('customerEmail');
-        const customerPhone = document.getElementById('customerPhone');
+        if (user && userData) {
+            // User is logged in
+            const initials = userData.name ? userData.name.split(' ').map(n => n[0]).join('') : 'U';
+            
+            authButtons.innerHTML = `
+                <div class="search-box">
+                    <input type="text" placeholder="Search products...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="cart-icon" id="cartIcon">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </div>
+                <div class="user-profile profile-dropdown">
+                    <div class="profile-avatar">${initials}</div>
+                    <div class="dropdown-menu">
+                        <ul>
+                            <li><a href="profile.html"><i class="fas fa-user"></i> My Profile</a></li>
+                            <li><a href="profile.html#orders"><i class="fas fa-shopping-cart"></i> My Orders</a></li>
+                            <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                            <li><a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+            
+            // Add logout functionality
+            document.getElementById('logoutBtn').addEventListener('click', async function(e) {
+                e.preventDefault();
+                try {
+                    await auth.signOut();
+                    location.reload();
+                } catch (error) {
+                    console.error('Logout error:', error);
+                }
+            });
+        }
+    }
 
-        // Initialize the page
-        document.addEventListener('DOMContentLoaded', function() {
-            // Mobile menu functionality
-            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-            const mobileNav = document.getElementById('mobileNav');
-            
-            mobileMenuBtn.addEventListener('click', function() {
-                mobileNav.classList.toggle('active');
-            });
-            
-            // Close mobile menu when clicking on a link
-            const mobileLinks = mobileNav.querySelectorAll('a');
-            mobileLinks.forEach(link => {
-                link.addEventListener('click', function() {
-                    mobileNav.classList.remove('active');
-                });
-            });
-            
-            // Navigation buttons
-            document.getElementById('joinNowBtn').addEventListener('click', function() {
-                document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
-            });
-            
-            document.getElementById('mobileJoinBtn').addEventListener('click', function() {
-                document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
+    // Product data with realistic prices and options
+    const products = [
+        {
+            id: 1,
+            name: "Fresh Maize",
+            price: 1500,
+            image: "https://foodieng.com/wp-content/uploads/2022/05/yellow-maiz.jpg",
+            description: "Freshly harvested maize, perfect for cooking or roasting.",
+            options: [
+                { unit: "50kg bag", price: 15000 },
+                { unit: "25kg bag", price: 8000 },
+                { unit: "10kg bag", price: 3500 },
+                { unit: "1kg", price: 400 }
+            ]
+        },
+        {
+            id: 2,
+            name: "Premium Rice",
+            price: 2500,
+            image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+            description: "High-quality locally grown rice, perfect for daily meals.",
+            options: [
+                { unit: "50kg bag", price: 25000 },
+                { unit: "25kg bag", price: 13000 },
+                { unit: "10kg bag", price: 5500 },
+                { unit: "1kg", price: 600 }
+            ]
+        },
+        {
+            id: 3,
+            name: "Fresh Tomatoes",
+            price: 800,
+            image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+            description: "Fresh, ripe tomatoes from local farms.",
+            options: [
+                { unit: "Basket (20kg)", price: 8000 },
+                { unit: "Half Basket (10kg)", price: 4500 },
+                { unit: "5kg", price: 2500 },
+                { unit: "1kg", price: 600 }
+            ]
+        },
+        {
+            id: 4,
+            name: "Beans",
+            price: 1200,
+            image: "https://www.pricepally.com/_next/image?url=https%3A%2F%2Fpp-new-node-medusa-prod-bucket.s3.us-east-1.amazonaws.com%2FBeans%20-%20Oloyin%20General-1725272084456.jpg&w=1920&q=75",
+            description: "Nutritious beans, rich in protein and fiber.",
+            options: [
+                { unit: "50kg bag", price: 12000 },
+                { unit: "25kg bag", price: 6500 },
+                { unit: "10kg bag", price: 2800 },
+                { unit: "1kg", price: 350 }
+            ]
+        },
+        {
+            id: 5,
+            name: "Cassava",
+            price: 500,
+            image: "https://greenhillsfarmstead.com/wp-content/uploads/2021/07/FACTS-1-1024x1024.png",
+            description: "Fresh cassava, perfect for making garri and other dishes.",
+            options: [
+                { unit: "100kg", price: 5000 },
+                { unit: "50kg", price: 2800 },
+                { unit: "25kg", price: 1500 },
+                { unit: "10kg", price: 700 }
+            ]
+        },
+        {
+            id: 6,
+            name: "Yam",
+            price: 1200,
+            image: "https://i0.wp.com/wangaraufoods.com/wp-content/uploads/2023/09/Benue-Yam.jpg?resize=600%2C600&ssl=1",
+            description: "Fresh yam tubers, great for boiling, frying or pounding.",
+            options: [
+                { unit: "100kg", price: 12000 },
+                { unit: "50kg", price: 6500 },
+                { unit: "25kg", price: 3500 },
+                { unit: "10kg", price: 1500 }
+            ]
+        },
+        {
+            id: 7,
+            name: "Goat",
+            price: 25000,
+            image: "https://www.greeneeds.com/blog/wp-content/uploads/2022/09/Goat-far-business.jpg",
+            description: "Healthy adult goat ready for sale.",
+            options: [
+                { unit: "Small (15-20kg)", price: 18000 },
+                { unit: "Medium (20-25kg)", price: 25000 },
+                { unit: "Large (25-30kg)", price: 32000 }
+            ]
+        },
+        {
+            id: 8,
+            name: "Chicken",
+            price: 2500,
+            image: "https://market.babsfarms-ltd.com/wp-content/uploads/2025/04/Live-Chicken-670x601.png",
+            description: "Fresh chicken from free-range farms.",
+            options: [
+                { unit: "1 Bird (1.5-2kg)", price: 2500 },
+                { unit: "5 Birds", price: 12000 },
+                { unit: "10 Birds", price: 23000 }
+            ]
+        },
+        {
+            id: 9,
+            name: "Turkey",
+            price: 15000,
+            image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Male_wild_turkey_%28Meleagris_gallopavo%29_strutting.jpg/250px-Male_wild_turkey_%28Meleagris_gallopavo%29_strutting.jpg",
+            description: "Premium turkey for special occasions.",
+            options: [
+                { unit: "Small (5-7kg)", price: 15000 },
+                { unit: "Medium (7-10kg)", price: 22000 },
+                { unit: "Large (10-12kg)", price: 28000 }
+            ]
+        },
+        {
+            id: 10,
+            name: "Eggs",
+            price: 10,
+            image: "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+            description: "Fresh farm eggs from free-range chickens.",
+            options: [
+                { unit: "Crate (30 eggs)", price: 10 },
+                { unit: "Half Crate (15 eggs)", price: 5 },
+                { unit: "5 eggs", price: 2 }
+            ]
+        }
+    ];
+
+    // Pre-harvest products with realistic prices
+    const preHarvestProducts = [
+        {
+            id: 101,
+            name: "Pre-Harvest Maize",
+            price: 1200,
+            image: "https://foodieng.com/wp-content/uploads/2022/05/yellow-maiz.jpg",
+            description: "Reserve your maize harvest now. Expected harvest in 3 weeks.",
+            harvestDate: "2025-12-15",
+            options: [
+                { unit: "50kg bag", price: 12000 },
+                { unit: "25kg bag", price: 6500 },
+                { unit: "10kg bag", price: 2800 }
+            ]
+        },
+        {
+            id: 102,
+            name: "Pre-Harvest Rice",
+            price: 2000,
+            image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+            description: "Reserve premium rice. Expected harvest in 4 weeks.",
+            harvestDate: "2025-12-20",
+            options: [
+                { unit: "50kg bag", price: 20000 },
+                { unit: "25kg bag", price: 10500 },
+                { unit: "10kg bag", price: 4500 }
+            ]
+        },
+        {
+            id: 103,
+            name: "Pre-Harvest Tomatoes",
+            price: 600,
+            image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
+            description: "Reserve fresh tomatoes. Expected harvest in 2 weeks.",
+            harvestDate: "2025-12-10",
+            options: [
+                { unit: "Basket (20kg)", price: 6000 },
+                { unit: "Half Basket (10kg)", price: 3500 },
+                { unit: "5kg", price: 2000 }
+            ]
+        },
+        {
+            id: 104,
+            name: "Goat (Livestock)",
+            price: 25000,
+            image: "https://www.greeneeds.com/blog/wp-content/uploads/2022/09/Goat-far-business.jpg",
+            description: "Healthy adult goat ready for sale.",
+            harvestDate: "Available Now",
+            options: [
+                { unit: "Small (15-20kg)", price: 18000 },
+                { unit: "Medium (20-25kg)", price: 25000 },
+                { unit: "Large (25-30kg)", price: 32000 }
+            ]
+        },
+        {
+            id: 105,
+            name: "Chicken (Livestock)",
+            price: 2500,
+            image: "https://market.babsfarms-ltd.com/wp-content/uploads/2025/04/Live-Chicken-670x601.png",
+            description: "Fresh chicken from free-range farms.",
+            harvestDate: "Available Now",
+            options: [
+                { unit: "1 Bird (1.5-2kg)", price: 2500 },
+                { unit: "5 Birds", price: 12000 },
+                { unit: "10 Birds", price: 23000 }
+            ]
+        },
+        {
+            id: 106,
+            name: "Turkey (Livestock)",
+            price: 15000,
+            image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Male_wild_turkey_%28Meleagris_gallopavo%29_strutting.jpg/250px-Male_wild_turkey_%28Meleagris_gallopavo%29_strutting.jpg",
+            description: "Premium turkey for special occasions.",
+            harvestDate: "Available Now",
+            options: [
+                { unit: "Small (5-7kg)", price: 15000 },
+                { unit: "Medium (7-10kg)", price: 22000 },
+                { unit: "Large (10-12kg)", price: 28000 }
+            ]
+        }
+    ];
+
+    // Cart functionality
+    let cart = [];
+    let currentProduct = null;
+    const cartIcon = document.getElementById('cartIcon');
+    const cartSidebar = document.getElementById('cartSidebar');
+    const closeCart = document.getElementById('closeCart');
+    const overlay = document.getElementById('overlay');
+    const cartItems = document.getElementById('cartItems');
+    const cartTotal = document.getElementById('cartTotal');
+    const cartCount = document.querySelector('.cart-count');
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    const productsGrid = document.getElementById('productsGrid');
+    const preHarvestGrid = document.getElementById('preHarvestGrid');
+    const productModal = document.getElementById('productModal');
+    const closeModal = document.getElementById('closeModal');
+    const modalProductTitle = document.getElementById('modalProductTitle');
+    const modalProductContent = document.getElementById('modalProductContent');
+    
+    // Payment gateway elements
+    const paymentGateway = document.getElementById('paymentGateway');
+    const closePayment = document.getElementById('closePayment');
+    const paymentItems = document.getElementById('paymentItems');
+    const paymentTotal = document.getElementById('paymentTotal');
+    const payButton = document.getElementById('payButton');
+    const paymentStatus = document.getElementById('paymentStatus');
+    const customerName = document.getElementById('customerName');
+    const customerEmail = document.getElementById('customerEmail');
+    const customerPhone = document.getElementById('customerPhone');
+
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mobile menu functionality
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileNav = document.getElementById('mobileNav');
+        
+        mobileMenuBtn.addEventListener('click', function() {
+            mobileNav.classList.toggle('active');
+        });
+        
+        // Close mobile menu when clicking on a link
+        const mobileLinks = mobileNav.querySelectorAll('a');
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', function() {
                 mobileNav.classList.remove('active');
             });
-            
-            document.getElementById('getStartedBtn').addEventListener('click', function() {
-                document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
-            });
-            
-            // Cart functionality
-            cartIcon.addEventListener('click', function() {
-                cartSidebar.classList.add('active');
-                overlay.classList.add('active');
-            });
-            
-            closeCart.addEventListener('click', function() {
-                cartSidebar.classList.remove('active');
-                overlay.classList.remove('active');
-            });
-            
-            overlay.addEventListener('click', function() {
-                cartSidebar.classList.remove('active');
-                overlay.classList.remove('active');
-                paymentGateway.classList.remove('active');
-                productModal.classList.remove('active');
-            });
-            
-            checkoutBtn.addEventListener('click', function() {
-                if (cart.length === 0) {
-                    alert('Your cart is empty!');
-                    return;
-                }
-                
-                // Show payment gateway
-                showPaymentGateway();
-            });
-            
-            // Payment gateway functionality
-            closePayment.addEventListener('click', function() {
-                paymentGateway.classList.remove('active');
-                overlay.classList.remove('active');
-            });
-            
-            payButton.addEventListener('click', function() {
-                processPayment();
-            });
-            
-            // Modal functionality
-            closeModal.addEventListener('click', function() {
-                productModal.classList.remove('active');
-                overlay.classList.remove('active');
-            });
-            
-            // Load products
-            loadProducts();
-            loadPreHarvestProducts();
         });
-
-        // Load products into the grid
-        function loadProducts() {
-            productsGrid.innerHTML = '';
-            
-            products.forEach(product => {
-                const productCard = document.createElement('div');
-                productCard.className = 'product-card';
-                productCard.innerHTML = `
-                    <img src="${product.image}" alt="${product.name}" class="product-image">
-                    <div class="product-info">
-                        <h3 class="product-title">${product.name}</h3>
-                        <p class="product-description">${product.description}</p>
-                        <div class="product-price">From ₦${product.price}</div>
-                        <div class="product-actions">
-                            <button class="add-to-cart" data-id="${product.id}">Add to Cart</button>
-                            <button class="buy-now" data-id="${product.id}">Buy Now</button>
-                        </div>
-                    </div>
-                `;
-                
-                productsGrid.appendChild(productCard);
-            });
-            
-            // Add event listeners to buttons
-            document.querySelectorAll('.add-to-cart').forEach(button => {
-                button.addEventListener('click', function() {
-                    const productId = parseInt(this.getAttribute('data-id'));
-                    showProductOptions(productId, false);
-                });
-            });
-            
-            document.querySelectorAll('.buy-now').forEach(button => {
-                button.addEventListener('click', function() {
-                    const productId = parseInt(this.getAttribute('data-id'));
-                    showProductOptions(productId, true);
-                });
-            });
-        }
-
-        // Load pre-harvest products
-        function loadPreHarvestProducts() {
-            preHarvestGrid.innerHTML = '';
-            
-            preHarvestProducts.forEach(product => {
-                const preHarvestCard = document.createElement('div');
-                preHarvestCard.className = 'pre-harvest-card';
-                preHarvestCard.innerHTML = `
-                    <div class="pre-harvest-header">
-                        <span class="pre-harvest-badge">Pre-Harvest</span>
-                        <span class="harvest-date">Harvest: ${product.harvestDate}</span>
-                    </div>
-                    <img src="${product.image}" alt="${product.name}" class="product-image">
-                    <div class="pre-harvest-info">
-                        <h3 class="product-title">${product.name}</h3>
-                        <p class="product-description">${product.description}</p>
-                        <div class="product-price">From ₦${product.price}</div>
-                        <div class="quantity-options">
-                            ${product.options.map(option => `
-                                <div class="quantity-option">
-                                    <span>${option.unit}</span>
-                                    <span class="option-price">₦${option.price}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                        <div class="product-actions">
-                            <button class="add-to-cart" data-id="${product.id}" data-preharvest="true">Reserve Now</button>
-                        </div>
-                    </div>
-                `;
-                
-                preHarvestGrid.appendChild(preHarvestCard);
-            });
-            
-            // Add event listeners to pre-harvest buttons
-            document.querySelectorAll('.pre-harvest-card .add-to-cart').forEach(button => {
-                button.addEventListener('click', function() {
-                    const productId = parseInt(this.getAttribute('data-id'));
-                    const isPreHarvest = this.getAttribute('data-preharvest') === 'true';
-                    showProductOptions(productId, false, isPreHarvest);
-                });
-            });
-        }
-
-        // Show product options modal
-        function showProductOptions(productId, buyNow = false, isPreHarvest = false) {
-            const productList = isPreHarvest ? preHarvestProducts : products;
-            const product = productList.find(p => p.id === productId);
-            
-            if (!product) return;
-            
-            currentProduct = {
-                ...product,
-                isPreHarvest
-            };
-            
-            modalProductTitle.textContent = `Select ${product.name} Options`;
-            
-            modalProductContent.innerHTML = `
-                <img src="${product.image}" alt="${product.name}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 20px;">
-                <p>${product.description}</p>
-                ${isPreHarvest ? `<p><strong>Harvest Date:</strong> ${product.harvestDate}</p>` : ''}
-                
-                <div class="quantity-selector">
-                    <h4>Select Quantity/Size:</h4>
-                    ${product.options.map((option, index) => `
-                        <div class="quantity-option-select ${index === 0 ? 'selected' : ''}" data-price="${option.price}" data-unit="${option.unit}">
-                            <span>${option.unit}</span>
-                            <span class="option-price">₦${option.price}</span>
-                        </div>
-                    `).join('')}
-                </div>
-                
-                <div class="quantity-input">
-                    <label>Quantity:</label>
-                    <input type="number" id="productQuantity" value="1" min="1">
-                </div>
-                
-                <div style="margin-top: 20px; font-weight: 600; font-size: 1.2rem;">
-                    Total: ₦<span id="modalTotalPrice">${product.options[0].price}</span>
-                </div>
-                
-                <button class="cta-button" style="width: 100%; margin-top: 20px;" id="addToCartModal">
-                    ${buyNow ? 'Buy Now' : (isPreHarvest ? 'Reserve Now' : 'Add to Cart')}
-                </button>
-            `;
-            
-            // Add event listeners to quantity options
-            document.querySelectorAll('.quantity-option-select').forEach(option => {
-                option.addEventListener('click', function() {
-                    document.querySelectorAll('.quantity-option-select').forEach(opt => {
-                        opt.classList.remove('selected');
-                    });
-                    this.classList.add('selected');
-                    updateModalTotalPrice();
-                });
-            });
-            
-            // Add event listener to quantity input
-            document.getElementById('productQuantity').addEventListener('input', updateModalTotalPrice);
-            
-            // Add event listener to add to cart button
-            document.getElementById('addToCartModal').addEventListener('click', function() {
-                addToCartFromModal(buyNow);
-            });
-            
-            // Show modal
-            productModal.classList.add('active');
+        
+        // Navigation buttons
+        document.getElementById('joinNowBtn').addEventListener('click', function() {
+            document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
+        });
+        
+        document.getElementById('mobileJoinBtn').addEventListener('click', function() {
+            document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
+            mobileNav.classList.remove('active');
+        });
+        
+        document.getElementById('getStartedBtn').addEventListener('click', function() {
+            document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
+        });
+        
+        // Cart functionality
+        cartIcon.addEventListener('click', function() {
+            cartSidebar.classList.add('active');
             overlay.classList.add('active');
-        }
-
-        // Update modal total price
-        function updateModalTotalPrice() {
-            const selectedOption = document.querySelector('.quantity-option-select.selected');
-            const quantity = parseInt(document.getElementById('productQuantity').value) || 1;
-            const price = parseInt(selectedOption.getAttribute('data-price'));
-            const total = price * quantity;
-            
-            document.getElementById('modalTotalPrice').textContent = total;
-        }
-
-        // Add product to cart from modal
-        function addToCartFromModal(buyNow = false) {
-            if (!currentProduct) return;
-            
-            const selectedOption = document.querySelector('.quantity-option-select.selected');
-            const quantity = parseInt(document.getElementById('productQuantity').value) || 1;
-            const unit = selectedOption.getAttribute('data-unit');
-            const price = parseInt(selectedOption.getAttribute('data-price'));
-            const total = price * quantity;
-            
-            // Check if product with same options is already in cart
-            const existingItemIndex = cart.findIndex(item => 
-                item.id === currentProduct.id && 
-                item.unit === unit &&
-                item.isPreHarvest === currentProduct.isPreHarvest
-            );
-            
-            if (existingItemIndex !== -1) {
-                // Update quantity of existing item
-                cart[existingItemIndex].quantity += quantity;
-                cart[existingItemIndex].total = cart[existingItemIndex].price * cart[existingItemIndex].quantity;
-            } else {
-                // Add new item to cart
-                cart.push({
-                    id: currentProduct.id,
-                    name: currentProduct.name,
-                    price: price,
-                    total: total,
-                    image: currentProduct.image,
-                    quantity: quantity,
-                    unit: unit,
-                    isPreHarvest: currentProduct.isPreHarvest
-                });
-            }
-            
-            updateCartDisplay();
-            
-            // Show confirmation
-            const notification = document.createElement('div');
-            notification.textContent = `${currentProduct.name} added to cart!`;
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: var(--primary);
-                color: white;
-                padding: 10px 20px;
-                border-radius: 5px;
-                z-index: 1001;
-                box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-            `;
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                document.body.removeChild(notification);
-            }, 3000);
-            
-            // Close modal
-            productModal.classList.remove('active');
+        });
+        
+        closeCart.addEventListener('click', function() {
+            cartSidebar.classList.remove('active');
             overlay.classList.remove('active');
-            
-            // If buy now, open cart
-            if (buyNow) {
-                cartSidebar.classList.add('active');
-                overlay.classList.add('active');
-            }
-        }
-
-        // Update cart display
-        function updateCartDisplay() {
-            // Update cart count
-            const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
-            cartCount.textContent = totalItems;
-            
-            // Update cart items
-            cartItems.innerHTML = '';
-            
+        });
+        
+        overlay.addEventListener('click', function() {
+            cartSidebar.classList.remove('active');
+            overlay.classList.remove('active');
+            paymentGateway.classList.remove('active');
+            productModal.classList.remove('active');
+        });
+        
+        checkoutBtn.addEventListener('click', function() {
             if (cart.length === 0) {
-                cartItems.innerHTML = '<p>Your cart is empty</p>';
-            } else {
-                cart.forEach(item => {
-                    const cartItem = document.createElement('div');
-                    cartItem.className = 'cart-item';
-                    cartItem.innerHTML = `
-                        <img src="${item.image}" alt="${item.name}" class="cart-item-image">
-                        <div class="cart-item-details">
-                            <h4 class="cart-item-title">${item.name} ${item.isPreHarvest ? '(Pre-Harvest)' : ''}</h4>
-                            <div class="cart-item-variant">${item.unit}</div>
-                            <div class="cart-item-price">₦${item.price} x ${item.quantity}</div>
-                            <div class="cart-item-quantity">
-                                <button class="quantity-btn" data-id="${item.id}" data-unit="${item.unit}" data-action="decrease">-</button>
-                                <span>${item.quantity}</span>
-                                <button class="quantity-btn" data-id="${item.id}" data-unit="${item.unit}" data-action="increase">+</button>
-                            </div>
-                        </div>
-                    `;
-                    cartItems.appendChild(cartItem);
-                });
-                
-                // Add event listeners to quantity buttons
-                document.querySelectorAll('.quantity-btn').forEach(button => {
-                    button.addEventListener('click', function() {
-                        const productId = parseInt(this.getAttribute('data-id'));
-                        const unit = this.getAttribute('data-unit');
-                        const action = this.getAttribute('data-action');
-                        updateQuantity(productId, unit, action);
-                    });
-                });
+                alert('Your cart is empty!');
+                return;
             }
-            
-            // Update total
-            cartTotal.textContent = '₦' + calculateCartTotal();
-        }
-
-        // Update item quantity in cart
-        function updateQuantity(productId, unit, action) {
-            const itemIndex = cart.findIndex(item => item.id === productId && item.unit === unit);
-            
-            if (itemIndex === -1) return;
-            
-            if (action === 'increase') {
-                cart[itemIndex].quantity += 1;
-                cart[itemIndex].total = cart[itemIndex].price * cart[itemIndex].quantity;
-            } else if (action === 'decrease') {
-                cart[itemIndex].quantity -= 1;
-                cart[itemIndex].total = cart[itemIndex].price * cart[itemIndex].quantity;
-                
-                if (cart[itemIndex].quantity <= 0) {
-                    cart.splice(itemIndex, 1);
-                }
-            }
-            
-            updateCartDisplay();
-        }
-
-        // Calculate cart total
-        function calculateCartTotal() {
-            return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-        }
-
-        // Show payment gateway
-        function showPaymentGateway() {
-            // Update payment summary
-            const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
-            const totalAmount = calculateCartTotal();
-            
-            paymentItems.textContent = totalItems;
-            paymentTotal.textContent = '₦' + totalAmount;
             
             // Show payment gateway
-            paymentGateway.classList.add('active');
-            overlay.classList.add('active');
-            
-            // Reset form
-            customerName.value = '';
-            customerEmail.value = '';
-            customerPhone.value = '';
-            paymentStatus.classList.remove('active');
-        }
+            showPaymentGateway();
+        });
+        
+        // Payment gateway functionality
+        closePayment.addEventListener('click', function() {
+            paymentGateway.classList.remove('active');
+            overlay.classList.remove('active');
+        });
+        
+        payButton.addEventListener('click', function() {
+            processPayment();
+        });
+        
+        // Modal functionality
+        closeModal.addEventListener('click', function() {
+            productModal.classList.remove('active');
+            overlay.classList.remove('active');
+        });
+        
+        // Load products
+        loadProducts();
+        loadPreHarvestProducts();
+    });
 
-        // Process payment using Interswitch Inline Checkout
-        function processPayment() {
-            // Validate form
-            if (!customerName.value || !customerEmail.value || !customerPhone.value) {
-                alert('Please fill in all required fields');
-                return;
-            }
-            // Validate email format
-            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailPattern.test(customerEmail.value)) {
-                alert('Please enter a valid email address');
-                return;
-            }
-            
-            const totalAmount = calculateCartTotal();
-            const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
-            
-            // Generate a unique transaction reference
-            const txnRef = 'GrowNet_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-            
-            console.log('Payment details:', {
-                amount: totalAmount,
-                txnRef: txnRef,
-                merchant_code: "MX153376",
-                pay_item_id: "5826784"
-            });
-            
-            // Show processing message
-            paymentStatus.innerHTML = `
-                <div class="payment-success">
-                    <i class="fas fa-spinner fa-spin"></i> Initializing payment...
+    // Load products into the grid
+    function loadProducts() {
+        productsGrid.innerHTML = '';
+        
+        products.forEach(product => {
+            const productCard = document.createElement('div');
+            productCard.className = 'product-card';
+            productCard.innerHTML = `
+                <img src="${product.image}" alt="${product.name}" class="product-image">
+                <div class="product-info">
+                    <h3 class="product-title">${product.name}</h3>
+                    <p class="product-description">${product.description}</p>
+                    <div class="product-price">From ₦${product.price}</div>
+                    <div class="product-actions">
+                        <button class="add-to-cart" data-id="${product.id}">Add to Cart</button>
+                        <button class="buy-now" data-id="${product.id}">Buy Now</button>
+                    </div>
                 </div>
             `;
-            paymentStatus.classList.add('active');
             
-            // Interswitch payment configuration - FIXED
-            // Sample paymentRequest object for reference
-            const paymentRequest = {
-                merchant_code: "MX153376",          // Your merchant code (required)
-                pay_item_id: "5826784",             // Your pay item ID (required)
-                pay_item_name: "GrowNet Agricultural Products", // Name of item (required for inline)
-                txn_ref: txnRef,                     // Unique transaction reference (required)
-                amount: totalAmount * 100,           // Amount in kobo (required)
-                currency: 566,                       // NGN currency code (required)
-                cust_name: customerName.value,       // Customer name (optional)
-                cust_email: customerEmail.value,     // Customer email (required)
-                cust_id: customerPhone.value,        // Customer ID (optional)
-                cust_mobile_no: customerPhone.value, // Customer mobile (optional)
-                site_redirect_url: window.location.href, // Redirect URL (recommended for inline)
-                mode: 'LIVE',                        // 'LIVE' for production, 'TEST' for sandbox
-                onComplete: paymentCallback          // Callback function (required)
+            productsGrid.appendChild(productCard);
+        });
+        
+        // Add event listeners to buttons
+        document.querySelectorAll('.add-to-cart').forEach(button => {
+            button.addEventListener('click', function() {
+                const productId = parseInt(this.getAttribute('data-id'));
+                showProductOptions(productId, false);
+            });
+        });
+        
+        document.querySelectorAll('.buy-now').forEach(button => {
+            button.addEventListener('click', function() {
+                const productId = parseInt(this.getAttribute('data-id'));
+                showProductOptions(productId, true);
+            });
+        });
+    }
+
+    // Load pre-harvest products
+    function loadPreHarvestProducts() {
+        preHarvestGrid.innerHTML = '';
+        
+        preHarvestProducts.forEach(product => {
+            const preHarvestCard = document.createElement('div');
+            preHarvestCard.className = 'pre-harvest-card';
+            preHarvestCard.innerHTML = `
+                <div class="pre-harvest-header">
+                    <span class="pre-harvest-badge">Pre-Harvest</span>
+                    <span class="harvest-date">Harvest: ${product.harvestDate}</span>
+                </div>
+                <img src="${product.image}" alt="${product.name}" class="product-image">
+                <div class="pre-harvest-info">
+                    <h3 class="product-title">${product.name}</h3>
+                    <p class="product-description">${product.description}</p>
+                    <div class="product-price">From ₦${product.price}</div>
+                    <div class="quantity-options">
+                        ${product.options.map(option => `
+                            <div class="quantity-option">
+                                <span>${option.unit}</span>
+                                <span class="option-price">₦${option.price}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="product-actions">
+                        <button class="add-to-cart" data-id="${product.id}" data-preharvest="true">Reserve Now</button>
+                    </div>
+                </div>
+            `;
+            
+            preHarvestGrid.appendChild(preHarvestCard);
+        });
+        
+        // Add event listeners to pre-harvest buttons
+        document.querySelectorAll('.pre-harvest-card .add-to-cart').forEach(button => {
+            button.addEventListener('click', function() {
+                const productId = parseInt(this.getAttribute('data-id'));
+                const isPreHarvest = this.getAttribute('data-preharvest') === 'true';
+                showProductOptions(productId, false, isPreHarvest);
+            });
+        });
+    }
+
+    // Show product options modal
+    function showProductOptions(productId, buyNow = false, isPreHarvest = false) {
+        const productList = isPreHarvest ? preHarvestProducts : products;
+        const product = productList.find(p => p.id === productId);
+        
+        if (!product) return;
+        
+        currentProduct = {
+            ...product,
+            isPreHarvest
+        };
+        
+        modalProductTitle.textContent = `Select ${product.name} Options`;
+        
+        modalProductContent.innerHTML = `
+            <img src="${product.image}" alt="${product.name}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 20px;">
+            <p>${product.description}</p>
+            ${isPreHarvest ? `<p><strong>Harvest Date:</strong> ${product.harvestDate}</p>` : ''}
+            
+            <div class="quantity-selector">
+                <h4>Select Quantity/Size:</h4>
+                ${product.options.map((option, index) => `
+                    <div class="quantity-option-select ${index === 0 ? 'selected' : ''}" data-price="${option.price}" data-unit="${option.unit}">
+                        <span>${option.unit}</span>
+                        <span class="option-price">₦${option.price}</span>
+                    </div>
+                `).join('')}
+            </div>
+            
+            <div class="quantity-input">
+                <label>Quantity:</label>
+                <input type="number" id="productQuantity" value="1" min="1">
+            </div>
+            
+            <div style="margin-top: 20px; font-weight: 600; font-size: 1.2rem;">
+                Total: ₦<span id="modalTotalPrice">${product.options[0].price}</span>
+            </div>
+            
+            <button class="cta-button" style="width: 100%; margin-top: 20px;" id="addToCartModal">
+                ${buyNow ? 'Buy Now' : (isPreHarvest ? 'Reserve Now' : 'Add to Cart')}
+            </button>
+        `;
+        
+        // Add event listeners to quantity options
+        document.querySelectorAll('.quantity-option-select').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.quantity-option-select').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                this.classList.add('selected');
+                updateModalTotalPrice();
+            });
+        });
+        
+        // Add event listener to quantity input
+        document.getElementById('productQuantity').addEventListener('input', updateModalTotalPrice);
+        
+        // Add event listener to add to cart button
+        document.getElementById('addToCartModal').addEventListener('click', function() {
+            addToCartFromModal(buyNow);
+        });
+        
+        // Show modal
+        productModal.classList.add('active');
+        overlay.classList.add('active');
+    }
+
+    // Update modal total price
+    function updateModalTotalPrice() {
+        const selectedOption = document.querySelector('.quantity-option-select.selected');
+        const quantity = parseInt(document.getElementById('productQuantity').value) || 1;
+        const price = parseInt(selectedOption.getAttribute('data-price'));
+        const total = price * quantity;
+        
+        document.getElementById('modalTotalPrice').textContent = total;
+    }
+
+    // Add product to cart from modal
+    function addToCartFromModal(buyNow = false) {
+        if (!currentProduct) return;
+        
+        const selectedOption = document.querySelector('.quantity-option-select.selected');
+        const quantity = parseInt(document.getElementById('productQuantity').value) || 1;
+        const unit = selectedOption.getAttribute('data-unit');
+        const price = parseInt(selectedOption.getAttribute('data-price'));
+        const total = price * quantity;
+        
+        // Check if product with same options is already in cart
+        const existingItemIndex = cart.findIndex(item => 
+            item.id === currentProduct.id && 
+            item.unit === unit &&
+            item.isPreHarvest === currentProduct.isPreHarvest
+        );
+        
+        if (existingItemIndex !== -1) {
+            // Update quantity of existing item
+            cart[existingItemIndex].quantity += quantity;
+            cart[existingItemIndex].total = cart[existingItemIndex].price * cart[existingItemIndex].quantity;
+        } else {
+            // Add new item to cart
+            cart.push({
+                id: currentProduct.id,
+                name: currentProduct.name,
+                price: price,
+                total: total,
+                image: currentProduct.image,
+                quantity: quantity,
+                unit: unit,
+                isPreHarvest: currentProduct.isPreHarvest
+            });
+        }
+        
+        updateCartDisplay();
+        
+        // Show confirmation
+        showNotification(`${currentProduct.name} added to cart!`);
+        
+        // Close modal
+        productModal.classList.remove('active');
+        overlay.classList.remove('active');
+        
+        // If buy now, open cart
+        if (buyNow) {
+            cartSidebar.classList.add('active');
+            overlay.classList.add('active');
+        }
+    }
+
+    // Update cart display
+    function updateCartDisplay() {
+        // Update cart count
+        const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+        cartCount.textContent = totalItems;
+        
+        // Update cart items
+        cartItems.innerHTML = '';
+        
+        if (cart.length === 0) {
+            cartItems.innerHTML = '<p>Your cart is empty</p>';
+        } else {
+            cart.forEach(item => {
+                const cartItem = document.createElement('div');
+                cartItem.className = 'cart-item';
+                cartItem.innerHTML = `
+                    <img src="${item.image}" alt="${item.name}" class="cart-item-image">
+                    <div class="cart-item-details">
+                        <h4 class="cart-item-title">${item.name} ${item.isPreHarvest ? '(Pre-Harvest)' : ''}</h4>
+                        <div class="cart-item-variant">${item.unit}</div>
+                        <div class="cart-item-price">₦${item.price} x ${item.quantity}</div>
+                        <div class="cart-item-quantity">
+                            <button class="quantity-btn" data-id="${item.id}" data-unit="${item.unit}" data-action="decrease">-</button>
+                            <span>${item.quantity}</span>
+                            <button class="quantity-btn" data-id="${item.id}" data-unit="${item.unit}" data-action="increase">+</button>
+                        </div>
+                    </div>
+                `;
+                cartItems.appendChild(cartItem);
+            });
+            
+            // Add event listeners to quantity buttons
+            document.querySelectorAll('.quantity-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = parseInt(this.getAttribute('data-id'));
+                    const unit = this.getAttribute('data-unit');
+                    const action = this.getAttribute('data-action');
+                    updateQuantity(productId, unit, action);
+                });
+            });
+        }
+        
+        // Update total
+        cartTotal.textContent = '₦' + calculateCartTotal();
+    }
+
+    // Update item quantity in cart
+    function updateQuantity(productId, unit, action) {
+        const itemIndex = cart.findIndex(item => item.id === productId && item.unit === unit);
+        
+        if (itemIndex === -1) return;
+        
+        if (action === 'increase') {
+            cart[itemIndex].quantity += 1;
+            cart[itemIndex].total = cart[itemIndex].price * cart[itemIndex].quantity;
+        } else if (action === 'decrease') {
+            cart[itemIndex].quantity -= 1;
+            cart[itemIndex].total = cart[itemIndex].price * cart[itemIndex].quantity;
+            
+            if (cart[itemIndex].quantity <= 0) {
+                cart.splice(itemIndex, 1);
+            }
+        }
+        
+        updateCartDisplay();
+    }
+
+    // Calculate cart total
+    function calculateCartTotal() {
+        return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    }
+
+    // Show payment gateway
+    function showPaymentGateway() {
+        // Update payment summary
+        const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+        const totalAmount = calculateCartTotal();
+        
+        paymentItems.textContent = totalItems;
+        paymentTotal.textContent = '₦' + totalAmount;
+        
+        // Show payment gateway
+        paymentGateway.classList.add('active');
+        overlay.classList.add('active');
+        
+        // Reset form
+        customerName.value = '';
+        customerEmail.value = '';
+        customerPhone.value = '';
+        paymentStatus.classList.remove('active');
+    }
+
+    // Process payment using Interswitch Inline Checkout
+    function processPayment() {
+        // Validate form
+        if (!customerName.value || !customerEmail.value || !customerPhone.value) {
+            alert('Please fill in all required fields');
+            return;
+        }
+        // Validate email format
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailPattern.test(customerEmail.value)) {
+            alert('Please enter a valid email address');
+            return;
+        }
+        
+        const totalAmount = calculateCartTotal();
+        const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+        
+        // Generate a unique transaction reference
+        const txnRef = 'GrowNet_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+        
+        console.log('Payment details:', {
+            amount: totalAmount,
+            txnRef: txnRef,
+            merchant_code: "MX153376",
+            pay_item_id: "5826784"
+        });
+        
+        // Show processing message
+        paymentStatus.innerHTML = `
+            <div class="payment-success">
+                <i class="fas fa-spinner fa-spin"></i> Initializing payment...
+            </div>
+        `;
+        paymentStatus.classList.add('active');
+        
+        // Interswitch payment configuration - FIXED
+        // Sample paymentRequest object for reference
+        const paymentRequest = {
+            merchant_code: "MX153376",          // Your merchant code (required)
+            pay_item_id: "5826784",             // Your pay item ID (required)
+            pay_item_name: "GrowNet Agricultural Products", // Name of item (required for inline)
+            txn_ref: txnRef,                     // Unique transaction reference (required)
+            amount: totalAmount * 100,           // Amount in kobo (required)
+            currency: 566,                       // NGN currency code (required)
+            cust_name: customerName.value,       // Customer name (optional)
+            cust_email: customerEmail.value,     // Customer email (required)
+            cust_id: customerPhone.value,        // Customer ID (optional)
+            cust_mobile_no: customerPhone.value, // Customer mobile (optional)
+            site_redirect_url: window.location.href, // Redirect URL (recommended for inline)
+            mode: 'LIVE',                        // 'LIVE' for production, 'TEST' for sandbox
+            onComplete: paymentCallback          // Callback function (required)
+        };
+        
+        console.log('Calling webpayCheckout with:', paymentRequest);
+        
+        // Check if Interswitch is loaded
+        if (typeof window.webpayCheckout === 'undefined') {
+            console.error('Interswitch webpayCheckout is not defined');
+            paymentStatus.innerHTML = `
+                <div class="payment-error">
+                    <i class="fas fa-times-circle"></i> Payment System Error
+                </div>
+                <p>Payment gateway not loaded. Please refresh the page.</p>
+                <p>If the problem persists, contact support.</p>
+            `;
+            paymentStatus.classList.add('active');
+            return;
+        }
+        
+        try {
+            // Initiate Interswitch inline checkout
+            window.webpayCheckout(paymentRequest);
+        } catch (error) {
+            console.error('Payment initialization error:', error);
+            paymentStatus.innerHTML = `
+                <div class="payment-error">
+                    <i class="fas fa-times-circle"></i> Payment Error
+                </div>
+                <p>Error: ${error.message}</p>
+                <button class="cta-button" style="margin-top: 15px;" id="tryAgain">Try Again</button>
+            `;
+            
+            // Add event listener to try again button
+            document.getElementById('tryAgain').addEventListener('click', function() {
+                paymentStatus.classList.remove('active');
+            });
+        }
+    }
+
+    // Payment callback function
+    function paymentCallback(response) {
+        console.log('Payment response:', response);
+        
+        if (response && response.ResponseCode === "00") {
+            // Payment successful
+            paymentStatus.innerHTML = `
+                <div class="payment-success">
+                    <i class="fas fa-check-circle"></i> Payment Successful!
+                </div>
+                <p>Transaction Reference: ${response.PaymentReference}</p>
+                <p>Amount Paid: ₦${response.Amount / 100}</p>
+                <p>Thank you for your purchase. Your order will be processed shortly.</p>
+                <button class="cta-button" style="margin-top: 15px;" id="continueShopping">Continue Shopping</button>
+            `;
+            
+            // Save order to Firestore if user is logged in
+            const user = auth.currentUser;
+            if (user) {
+                saveOrderToFirestore(user.uid);
+            }
+            
+            // Clear cart after successful payment
+            cart = [];
+            updateCartDisplay();
+            
+            // Add event listener to continue shopping button
+            document.getElementById('continueShopping').addEventListener('click', function() {
+                paymentGateway.classList.remove('active');
+                overlay.classList.remove('active');
+            });
+        } else {
+            // Payment failed
+            paymentStatus.innerHTML = `
+                <div class="payment-error">
+                    <i class="fas fa-times-circle"></i> Payment Failed
+                </div>
+                <p>${response.ResponseDescription || 'An error occurred during payment processing.'}</p>
+                <p>Please try again or contact support if the problem persists.</p>
+                <button class="cta-button" style="margin-top: 15px;" id="tryAgain">Try Again</button>
+            `;
+            
+            // Add event listener to try again button
+            document.getElementById('tryAgain').addEventListener('click', function() {
+                paymentStatus.classList.remove('active');
+            });
+        }
+    }
+
+    // Save order to Firestore
+    async function saveOrderToFirestore(userId) {
+        try {
+            const orderData = {
+                userId: userId,
+                items: cart,
+                totalAmount: calculateCartTotal(),
+                customerName: customerName.value,
+                customerEmail: customerEmail.value,
+                customerPhone: customerPhone.value,
+                status: 'pending',
+                createdAt: new Date().toISOString(),
+                paymentStatus: 'completed'
             };
             
-            console.log('Calling webpayCheckout with:', paymentRequest);
-            
-            // Check if Interswitch is loaded
-            if (typeof window.webpayCheckout === 'undefined') {
-                console.error('Interswitch webpayCheckout is not defined');
-                paymentStatus.innerHTML = `
-                    <div class="payment-error">
-                        <i class="fas fa-times-circle"></i> Payment System Error
-                    </div>
-                    <p>Payment gateway not loaded. Please refresh the page.</p>
-                    <p>If the problem persists, contact support.</p>
-                `;
-                paymentStatus.classList.add('active');
-                return;
-            }
-            
-            try {
-                // Initiate Interswitch inline checkout
-                window.webpayCheckout(paymentRequest);
-            } catch (error) {
-                console.error('Payment initialization error:', error);
-                paymentStatus.innerHTML = `
-                    <div class="payment-error">
-                        <i class="fas fa-times-circle"></i> Payment Error
-                    </div>
-                    <p>Error: ${error.message}</p>
-                    <button class="cta-button" style="margin-top: 15px;" id="tryAgain">Try Again</button>
-                `;
-                
-                // Add event listener to try again button
-                document.getElementById('tryAgain').addEventListener('click', function() {
-                    paymentStatus.classList.remove('active');
-                });
-            }
+            await db.collection('orders').add(orderData);
+            console.log('Order saved to Firestore');
+        } catch (error) {
+            console.error('Error saving order to Firestore:', error);
         }
+    }
 
-        // Payment callback function
-        function paymentCallback(response) {
-            console.log('Payment response:', response);
-            
-            if (response && response.ResponseCode === "00") {
-                // Payment successful
-                paymentStatus.innerHTML = `
-                    <div class="payment-success">
-                        <i class="fas fa-check-circle"></i> Payment Successful!
-                    </div>
-                    <p>Transaction Reference: ${response.PaymentReference}</p>
-                    <p>Amount Paid: ₦${response.Amount / 100}</p>
-                    <p>Thank you for your purchase. Your order will be processed shortly.</p>
-                    <button class="cta-button" style="margin-top: 15px;" id="continueShopping">Continue Shopping</button>
-                `;
-                
-                // Clear cart after successful payment
-                cart = [];
-                updateCartDisplay();
-                
-                // Add event listener to continue shopping button
-                document.getElementById('continueShopping').addEventListener('click', function() {
-                    paymentGateway.classList.remove('active');
-                    overlay.classList.remove('active');
-                });
-            } else {
-                // Payment failed
-                paymentStatus.innerHTML = `
-                    <div class="payment-error">
-                        <i class="fas fa-times-circle"></i> Payment Failed
-                    </div>
-                    <p>${response.ResponseDescription || 'An error occurred during payment processing.'}</p>
-                    <p>Please try again or contact support if the problem persists.</p>
-                    <button class="cta-button" style="margin-top: 15px;" id="tryAgain">Try Again</button>
-                `;
-                
-                // Add event listener to try again button
-                document.getElementById('tryAgain').addEventListener('click', function() {
-                    paymentStatus.classList.remove('active');
-                });
-            }
-        }
-    </script>
-        <script>
-        window.paymentCallback = paymentCallback;
-        </script>
-        
-    <script type="module">
-      // Import the functions you need from the SDKs you need
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-      import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
-      // TODO: Add SDKs for Firebase products that you want to use
-      // https://firebase.google.com/docs/web/setup#available-libraries
+    // Make paymentCallback globally available
+    window.paymentCallback = paymentCallback;
+</script>
 
-      // Your web app's Firebase configuration
-      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-      const firebaseConfig = {
-        apiKey: "AIzaSyAZ3LWTB1ZGAp1bQHKP5HJ57v5cQf-Ub50",
-        authDomain: "grownet-id.firebaseapp.com",
-        projectId: "grownet-id",
-        storageBucket: "grownet-id.firebasestorage.app",
-        messagingSenderId: "604886920916",
-        appId: "1:604886920916:web:222a5cb3a5154cfb83d541",
-        measurementId: "G-RMX5X6D3KW"
-      };
-
-      // Initialize Firebase
-      const app = initializeApp(firebaseConfig);
-      const analytics = getAnalytics(app);
-    </script> 
+<script>
+    // Interswitch callback function - keep this separate
+    window.paymentCallback = paymentCallback;
+</script>
 </body>
 </html>

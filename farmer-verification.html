@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Farmer Verification - GrowNet</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
     <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌱</text></svg>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -669,92 +673,147 @@
         </div>
     </footer>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Elements
-            const progressBar = document.getElementById('progressBar');
-            const steps = document.querySelectorAll('.step');
-            const formSections = document.querySelectorAll('.form-section');
-            const nextToStep2 = document.getElementById('nextToStep2');
-            const nextToStep3 = document.getElementById('nextToStep3');
-            const backToStep1 = document.getElementById('backToStep1');
-            const backToStep2 = document.getElementById('backToStep2');
-            const submitVerification = document.getElementById('submitVerification');
-            const goToHomepage = document.getElementById('goToHomepage');
-            
-            // File upload elements
-            const uploadArea = document.getElementById('uploadArea');
-            const fileInput = document.getElementById('fileInput');
-            const uploadPreview = document.getElementById('uploadPreview');
-            const idUploadArea = document.getElementById('idUploadArea');
-            const idFileInput = document.getElementById('idFileInput');
-            const idUploadPreview = document.getElementById('idUploadPreview');
-            
-            let currentStep = 1;
-            let uploadedImages = [];
-            let uploadedId = null;
-            
-            // Update progress bar and steps
-            function updateProgress(step) {
-                // Update progress bar
-                const progressPercentage = ((step - 1) / (steps.length - 1)) * 100;
-                progressBar.style.width = `${progressPercentage}%`;
-                
-                // Update step indicators
-                steps.forEach(s => {
-                    const stepNum = parseInt(s.getAttribute('data-step'));
-                    if (stepNum <= step) {
-                        s.classList.add('active');
-                    } else {
-                        s.classList.remove('active');
-                    }
-                });
-                
-                // Show current form section
-                formSections.forEach(section => {
-                    section.classList.remove('active');
-                });
-                document.getElementById(`step${step}`).classList.add('active');
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Firebase Configuration and Initialization
+        const firebaseConfig = {
+            apiKey: "AIzaSyAZ3LWTB1ZGAp1bQHKP5HJ57v5cQf-Ub50",
+            authDomain: "grownet-id.firebaseapp.com",
+            projectId: "grownet-id",
+            storageBucket: "grownet-id.firebasestorage.app",
+            messagingSenderId: "604886920916",
+            appId: "1:604886920916:web:222a5cb3a5154cfb83d541",
+            measurementId: "G-RMX5X6D3KW"
+        };
+
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        // Check if user is logged in
+        auth.onAuthStateChanged((user) => {
+            if (!user) {
+                // Redirect to login if not authenticated
+                alert('Please login to access farmer verification');
+                window.location.href = 'index.html';
             }
+        });
+
+        // Elements
+        const progressBar = document.getElementById('progressBar');
+        const steps = document.querySelectorAll('.step');
+        const formSections = document.querySelectorAll('.form-section');
+        const nextToStep2 = document.getElementById('nextToStep2');
+        const nextToStep3 = document.getElementById('nextToStep3');
+        const backToStep1 = document.getElementById('backToStep1');
+        const backToStep2 = document.getElementById('backToStep2');
+        const submitVerification = document.getElementById('submitVerification');
+        const goToHomepage = document.getElementById('goToHomepage');
+        
+        // File upload elements
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const uploadPreview = document.getElementById('uploadPreview');
+        const idUploadArea = document.getElementById('idUploadArea');
+        const idFileInput = document.getElementById('idFileInput');
+        const idUploadPreview = document.getElementById('idUploadPreview');
+        
+        let currentStep = 1;
+        let uploadedImages = [];
+        let uploadedId = null;
+        
+        // Update progress bar and steps
+        function updateProgress(step) {
+            // Update progress bar
+            const progressPercentage = ((step - 1) / (steps.length - 1)) * 100;
+            progressBar.style.width = `${progressPercentage}%`;
             
-            // Navigation functions
-            nextToStep2.addEventListener('click', function() {
-                // Validate step 1
-                if (validateStep1()) {
-                    currentStep = 2;
-                    updateProgress(currentStep);
+            // Update step indicators
+            steps.forEach(s => {
+                const stepNum = parseInt(s.getAttribute('data-step'));
+                if (stepNum <= step) {
+                    s.classList.add('active');
+                } else {
+                    s.classList.remove('active');
                 }
             });
             
-            nextToStep3.addEventListener('click', function() {
-                // Validate step 2
-                if (validateStep2()) {
-                    currentStep = 3;
-                    updateProgress(currentStep);
-                }
+            // Show current form section
+            formSections.forEach(section => {
+                section.classList.remove('active');
             });
-            
-            backToStep1.addEventListener('click', function() {
-                currentStep = 1;
-                updateProgress(currentStep);
-            });
-            
-            backToStep2.addEventListener('click', function() {
+            document.getElementById(`step${step}`).classList.add('active');
+        }
+        
+        // Navigation functions
+        nextToStep2.addEventListener('click', function() {
+            // Validate step 1
+            if (validateStep1()) {
                 currentStep = 2;
                 updateProgress(currentStep);
-            });
-            
-            submitVerification.addEventListener('click', function() {
-                // Validate step 3
-                if (validateStep3()) {
-                    // Show success message
-                    document.getElementById('step3').classList.remove('active');
-                    document.getElementById('successMessage').classList.add('active');
+            }
+        });
+        
+        nextToStep3.addEventListener('click', function() {
+            // Validate step 2
+            if (validateStep2()) {
+                currentStep = 3;
+                updateProgress(currentStep);
+            }
+        });
+        
+        backToStep1.addEventListener('click', function() {
+            currentStep = 1;
+            updateProgress(currentStep);
+        });
+        
+        backToStep2.addEventListener('click', function() {
+            currentStep = 2;
+            updateProgress(currentStep);
+        });
+        
+        submitVerification.addEventListener('click', async function() {
+            // Validate step 3
+            if (validateStep3()) {
+                // Get current user
+                const user = auth.currentUser;
+                if (!user) {
+                    alert('Please login to submit verification');
+                    window.location.href = 'index.html';
+                    return;
+                }
+                
+                // Disable submit button to prevent multiple submissions
+                submitVerification.disabled = true;
+                submitVerification.textContent = 'Submitting...';
+                
+                try {
+                    // Upload images to Firebase Storage
+                    const imageUrls = await uploadImagesToStorage(uploadedImages, `users/${user.uid}/farm-images`);
                     
-                    // In a real application, you would submit the data to a server here
-                    console.log('Farmer verification submitted:', {
+                    // Upload ID document
+                    let idDocumentUrl = null;
+                    if (uploadedId) {
+                        const fileName = `id_${Date.now()}_${uploadedId.name}`;
+                        const idRef = storage.ref(`users/${user.uid}/id-documents/${fileName}`);
+                        
+                        // Convert data URL to blob
+                        const response = await fetch(uploadedId.data);
+                        const blob = await response.blob();
+                        
+                        // Upload to Firebase Storage
+                        await idRef.put(blob);
+                        idDocumentUrl = await idRef.getDownloadURL();
+                    }
+                    
+                    // Prepare verification data
+                    const verificationData = {
                         farmName: document.getElementById('farmName').value,
-                        farmSize: document.getElementById('farmSize').value,
+                        farmSize: parseInt(document.getElementById('farmSize').value) || 0,
                         farmLocation: document.getElementById('farmLocation').value,
                         farmAddress: document.getElementById('farmAddress').value,
                         yearsFarming: document.getElementById('yearsFarming').value,
@@ -763,275 +822,323 @@
                         idType: document.getElementById('idType').value,
                         idNumber: document.getElementById('idNumber').value,
                         additionalInfo: document.getElementById('additionalInfo').value,
-                        images: uploadedImages,
-                        idDocument: uploadedId
-                    });
-                }
-            });
-            
-            goToHomepage.addEventListener('click', function() {
-                // Redirect to homepage
-                window.location.href = 'index.html';
-            });
-            
-            // File upload functionality
-            uploadArea.addEventListener('click', function() {
-                fileInput.click();
-            });
-            
-            fileInput.addEventListener('change', function(e) {
-                handleFileUpload(e.target.files, uploadPreview, uploadedImages);
-            });
-            
-            idUploadArea.addEventListener('click', function() {
-                idFileInput.click();
-            });
-            
-            idFileInput.addEventListener('change', function(e) {
-                handleIdUpload(e.target.files[0], idUploadPreview);
-            });
-            
-            // Handle drag and drop
-            uploadArea.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                uploadArea.style.borderColor = 'var(--primary)';
-                uploadArea.style.backgroundColor = 'rgba(46, 125, 50, 0.05)';
-            });
-            
-            uploadArea.addEventListener('dragleave', function() {
-                uploadArea.style.borderColor = '#ddd';
-                uploadArea.style.backgroundColor = 'transparent';
-            });
-            
-            uploadArea.addEventListener('drop', function(e) {
-                e.preventDefault();
-                uploadArea.style.borderColor = '#ddd';
-                uploadArea.style.backgroundColor = 'transparent';
-                handleFileUpload(e.dataTransfer.files, uploadPreview, uploadedImages);
-            });
-            
-            // File upload handlers
-            function handleFileUpload(files, previewContainer, storageArray) {
-                for (let i = 0; i < files.length; i++) {
-                    const file = files[i];
-                    
-                    // Check file type and size
-                    if (!file.type.startsWith('image/')) {
-                        alert('Please upload only image files');
-                        continue;
-                    }
-                    
-                    if (file.size > 5 * 1024 * 1024) {
-                        alert('File size must be less than 5MB');
-                        continue;
-                    }
-                    
-                    const reader = new FileReader();
-                    
-                    reader.onload = function(e) {
-                        const imgData = {
-                            name: file.name,
-                            data: e.target.result
-                        };
-                        
-                        storageArray.push(imgData);
-                        renderPreview(imgData, previewContainer, storageArray);
+                        farmImages: imageUrls,
+                        idDocumentUrl: idDocumentUrl,
+                        verificationStatus: 'under_review',
+                        verificationSubmittedAt: new Date().toISOString(),
+                        isFarmer: true,
+                        role: 'farmer',
+                        farmInfoUpdatedAt: new Date().toISOString()
                     };
                     
-                    reader.readAsDataURL(file);
+                    // Update user document in Firestore
+                    await db.collection('users').doc(user.uid).update(verificationData);
+                    
+                    // Create a verification request
+                    await db.collection('verificationRequests').add({
+                        userId: user.uid,
+                        userEmail: user.email,
+                        ...verificationData,
+                        status: 'pending',
+                        createdAt: new Date().toISOString(),
+                        reviewedBy: null,
+                        reviewedAt: null
+                    });
+                    
+                    // Show success message
+                    document.getElementById('step3').classList.remove('active');
+                    document.getElementById('successMessage').classList.add('active');
+                    
+                    console.log('Farmer verification submitted successfully:', verificationData);
+                    
+                } catch (error) {
+                    console.error('Error submitting verification:', error);
+                    alert('Error submitting verification. Please try again.');
+                    
+                    // Re-enable submit button
+                    submitVerification.disabled = false;
+                    submitVerification.textContent = 'Submit for Review';
                 }
             }
-            
-            function handleIdUpload(file, previewContainer) {
-                if (!file) return;
+        });
+        
+        goToHomepage.addEventListener('click', function() {
+            // Redirect to homepage
+            window.location.href = 'index.html';
+        });
+        
+        // File upload functionality
+        uploadArea.addEventListener('click', function() {
+            fileInput.click();
+        });
+        
+        fileInput.addEventListener('change', function(e) {
+            handleFileUpload(e.target.files, uploadPreview, uploadedImages);
+        });
+        
+        idUploadArea.addEventListener('click', function() {
+            idFileInput.click();
+        });
+        
+        idFileInput.addEventListener('change', function(e) {
+            handleIdUpload(e.target.files[0], idUploadPreview);
+        });
+        
+        // Handle drag and drop
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadArea.style.borderColor = 'var(--primary)';
+            uploadArea.style.backgroundColor = 'rgba(46, 125, 50, 0.05)';
+        });
+        
+        uploadArea.addEventListener('dragleave', function() {
+            uploadArea.style.borderColor = '#ddd';
+            uploadArea.style.backgroundColor = 'transparent';
+        });
+        
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#ddd';
+            uploadArea.style.backgroundColor = 'transparent';
+            handleFileUpload(e.dataTransfer.files, uploadPreview, uploadedImages);
+        });
+        
+        // File upload handlers
+        function handleFileUpload(files, previewContainer, storageArray) {
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
                 
                 // Check file type and size
-                if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
-                    alert('Please upload an image or PDF file');
-                    return;
+                if (!file.type.startsWith('image/')) {
+                    alert('Please upload only image files');
+                    continue;
                 }
                 
                 if (file.size > 5 * 1024 * 1024) {
                     alert('File size must be less than 5MB');
-                    return;
+                    continue;
                 }
                 
                 const reader = new FileReader();
                 
                 reader.onload = function(e) {
-                    uploadedId = {
+                    const imgData = {
                         name: file.name,
-                        type: file.type,
-                        data: e.target.result
+                        data: e.target.result,
+                        file: file  // Store the original file object
                     };
                     
-                    // Clear previous preview
-                    previewContainer.innerHTML = '';
-                    
-                    // Create preview
-                    const previewItem = document.createElement('div');
-                    previewItem.className = 'preview-item';
-                    
-                    if (file.type.startsWith('image/')) {
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        previewItem.appendChild(img);
-                    } else {
-                        // For PDF, show a document icon
-                        const docIcon = document.createElement('div');
-                        docIcon.style.cssText = `
-                            width: 100%;
-                            height: 100%;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            background-color: #f5f5f5;
-                        `;
-                        docIcon.innerHTML = `<i class="fas fa-file-pdf" style="font-size: 2rem; color: #f44336;"></i>`;
-                        previewItem.appendChild(docIcon);
-                    }
-                    
-                    const removeBtn = document.createElement('div');
-                    removeBtn.className = 'remove-image';
-                    removeBtn.innerHTML = '<i class="fas fa-times"></i>';
-                    removeBtn.addEventListener('click', function() {
-                        previewContainer.removeChild(previewItem);
-                        uploadedId = null;
-                    });
-                    
-                    previewItem.appendChild(removeBtn);
-                    previewContainer.appendChild(previewItem);
+                    storageArray.push(imgData);
+                    renderPreview(imgData, previewContainer, storageArray);
                 };
                 
                 reader.readAsDataURL(file);
             }
+        }
+        
+        function handleIdUpload(file, previewContainer) {
+            if (!file) return;
             
-            function renderPreview(imgData, previewContainer, storageArray) {
+            // Check file type and size
+            if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+                alert('Please upload an image or PDF file');
+                return;
+            }
+            
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size must be less than 5MB');
+                return;
+            }
+            
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                uploadedId = {
+                    name: file.name,
+                    type: file.type,
+                    data: e.target.result,
+                    file: file  // Store the original file object
+                };
+                
+                // Clear previous preview
+                previewContainer.innerHTML = '';
+                
+                // Create preview
                 const previewItem = document.createElement('div');
                 previewItem.className = 'preview-item';
                 
-                const img = document.createElement('img');
-                img.src = imgData.data;
-                previewItem.appendChild(img);
+                if (file.type.startsWith('image/')) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    previewItem.appendChild(img);
+                } else {
+                    // For PDF, show a document icon
+                    const docIcon = document.createElement('div');
+                    docIcon.style.cssText = `
+                        width: 100%;
+                        height: 100%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        background-color: #f5f5f5;
+                    `;
+                    docIcon.innerHTML = `<i class="fas fa-file-pdf" style="font-size: 2rem; color: #f44336;"></i>`;
+                    previewItem.appendChild(docIcon);
+                }
                 
                 const removeBtn = document.createElement('div');
                 removeBtn.className = 'remove-image';
                 removeBtn.innerHTML = '<i class="fas fa-times"></i>';
                 removeBtn.addEventListener('click', function() {
                     previewContainer.removeChild(previewItem);
-                    const index = storageArray.indexOf(imgData);
-                    if (index !== -1) {
-                        storageArray.splice(index, 1);
-                    }
+                    uploadedId = null;
                 });
                 
                 previewItem.appendChild(removeBtn);
                 previewContainer.appendChild(previewItem);
+            };
+            
+            reader.readAsDataURL(file);
+        }
+        
+        function renderPreview(imgData, previewContainer, storageArray) {
+            const previewItem = document.createElement('div');
+            previewItem.className = 'preview-item';
+            
+            const img = document.createElement('img');
+            img.src = imgData.data;
+            previewItem.appendChild(img);
+            
+            const removeBtn = document.createElement('div');
+            removeBtn.className = 'remove-image';
+            removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+            removeBtn.addEventListener('click', function() {
+                previewContainer.removeChild(previewItem);
+                const index = storageArray.indexOf(imgData);
+                if (index !== -1) {
+                    storageArray.splice(index, 1);
+                }
+            });
+            
+            previewItem.appendChild(removeBtn);
+            previewContainer.appendChild(previewItem);
+        }
+        
+        // Helper function to upload images to Firebase Storage
+        async function uploadImagesToStorage(images, path) {
+            const urls = [];
+            
+            for (let i = 0; i < images.length; i++) {
+                const image = images[i];
+                const fileName = `farm_${Date.now()}_${i}_${image.name}`;
+                const imageRef = storage.ref(`${path}/${fileName}`);
+                
+                // Use the original file object if available, otherwise convert data URL to blob
+                let blob;
+                if (image.file) {
+                    blob = image.file;
+                } else {
+                    // Convert data URL to blob
+                    const response = await fetch(image.data);
+                    blob = await response.blob();
+                }
+                
+                // Upload to Firebase Storage
+                await imageRef.put(blob);
+                
+                // Get download URL
+                const url = await imageRef.getDownloadURL();
+                urls.push({
+                    url: url,
+                    name: image.name,
+                    uploadedAt: new Date().toISOString()
+                });
             }
             
-            // Validation functions
-            function validateStep1() {
-                const farmName = document.getElementById('farmName').value;
-                const farmSize = document.getElementById('farmSize').value;
-                const farmLocation = document.getElementById('farmLocation').value;
-                const farmAddress = document.getElementById('farmAddress').value;
-                const yearsFarming = document.getElementById('yearsFarming').value;
-                
-                if (!farmName.trim()) {
-                    alert('Please enter your farm name');
-                    return false;
-                }
-                
-                if (!farmSize || farmSize <= 0) {
-                    alert('Please enter a valid farm size');
-                    return false;
-                }
-                
-                if (!farmLocation.trim()) {
-                    alert('Please enter your farm location');
-                    return false;
-                }
-                
-                if (!farmAddress.trim()) {
-                    alert('Please enter your farm address');
-                    return false;
-                }
-                
-                if (!yearsFarming) {
-                    alert('Please select your farming experience');
-                    return false;
-                }
-                
-                return true;
+            return urls;
+        }
+        
+        // Validation functions
+        function validateStep1() {
+            const farmName = document.getElementById('farmName').value;
+            const farmSize = document.getElementById('farmSize').value;
+            const farmLocation = document.getElementById('farmLocation').value;
+            const farmAddress = document.getElementById('farmAddress').value;
+            const yearsFarming = document.getElementById('yearsFarming').value;
+            
+            if (!farmName.trim()) {
+                alert('Please enter your farm name');
+                return false;
             }
             
-            function validateStep2() {
-                const productTypes = document.getElementById('productTypes');
-                const selectedProducts = Array.from(productTypes.selectedOptions).map(opt => opt.value);
-                const productionCapacity = document.getElementById('productionCapacity').value;
-                
-                if (selectedProducts.length === 0) {
-                    alert('Please select at least one product type');
-                    return false;
-                }
-                
-                if (!productionCapacity.trim()) {
-                    alert('Please enter your production capacity');
-                    return false;
-                }
-                
-                if (uploadedImages.length === 0) {
-                    alert('Please upload at least one image of your farm or products');
-                    return false;
-                }
-                
-                return true;
+            if (!farmSize || farmSize <= 0) {
+                alert('Please enter a valid farm size');
+                return false;
             }
             
-            function validateStep3() {
-                const idType = document.getElementById('idType').value;
-                const idNumber = document.getElementById('idNumber').value;
-                
-                if (!idType) {
-                    alert('Please select your ID type');
-                    return false;
-                }
-                
-                if (!idNumber.trim()) {
-                    alert('Please enter your ID number');
-                    return false;
-                }
-                
-                if (!uploadedId) {
-                    alert('Please upload a copy of your ID document');
-                    return false;
-                }
-                
-                return true;
+            if (!farmLocation.trim()) {
+                alert('Please enter your farm location');
+                return false;
             }
-        });
-    </script>
-    
-    <script type="module">
-      // Import the functions you need from the SDKs you need
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-      import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
-
-      // Your web app's Firebase configuration
-      const firebaseConfig = {
-        apiKey: "AIzaSyAZ3LWTB1ZGAp1bQHKP5HJ57v5cQf-Ub50",
-        authDomain: "grownet-id.firebaseapp.com",
-        projectId: "grownet-id",
-        storageBucket: "grownet-id.firebasestorage.app",
-        messagingSenderId: "604886920916",
-        appId: "1:604886920916:web:222a5cb3a5154cfb83d541",
-        measurementId: "G-RMX5X6D3KW"
-      };
-
-      // Initialize Firebase
-      const app = initializeApp(firebaseConfig);
-      const analytics = getAnalytics(app);
-      console.log("Firebase initialized on Farmer Verification Page");
-    </script>
+            
+            if (!farmAddress.trim()) {
+                alert('Please enter your farm address');
+                return false;
+            }
+            
+            if (!yearsFarming) {
+                alert('Please select your farming experience');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        function validateStep2() {
+            const productTypes = document.getElementById('productTypes');
+            const selectedProducts = Array.from(productTypes.selectedOptions).map(opt => opt.value);
+            const productionCapacity = document.getElementById('productionCapacity').value;
+            
+            if (selectedProducts.length === 0) {
+                alert('Please select at least one product type');
+                return false;
+            }
+            
+            if (!productionCapacity.trim()) {
+                alert('Please enter your production capacity');
+                return false;
+            }
+            
+            if (uploadedImages.length === 0) {
+                alert('Please upload at least one image of your farm or products');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        function validateStep3() {
+            const idType = document.getElementById('idType').value;
+            const idNumber = document.getElementById('idNumber').value;
+            
+            if (!idType) {
+                alert('Please select your ID type');
+                return false;
+            }
+            
+            if (!idNumber.trim()) {
+                alert('Please enter your ID number');
+                return false;
+            }
+            
+            if (!uploadedId) {
+                alert('Please upload a copy of your ID document');
+                return false;
+            }
+            
+            return true;
+        }
+    });
+</script>
 </body>
 </html>
