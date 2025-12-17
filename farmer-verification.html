@@ -700,6 +700,14 @@
                 // Redirect to login if not authenticated
                 alert('Please login to access farmer verification');
                 window.location.href = 'index.html';
+            } else {
+                // Check if user is already a farmer
+                db.collection('users').doc(user.uid).get().then((doc) => {
+                    if (doc.exists && doc.data().role === 'farmer' && doc.data().verificationStatus === 'approved') {
+                        alert('You are already a verified farmer!');
+                        window.location.href = 'profile.html';
+                    }
+                });
             }
         });
 

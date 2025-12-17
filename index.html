@@ -149,6 +149,72 @@
         .cta-button:hover {
             background-color: var(--dark);
         }
+
+        /* Profile Dropdown Styles */
+        .user-profile {
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .profile-avatar {
+            width: 36px;
+            height: 36px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: white;
+            min-width: 200px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-radius: 5px;
+            z-index: 100;
+            margin-top: 10px;
+        }
+        
+        .user-profile:hover .dropdown-menu {
+            display: block;
+        }
+        
+        .dropdown-menu ul {
+            list-style: none;
+            padding: 10px 0;
+        }
+        
+        .dropdown-menu li {
+            padding: 0;
+        }
+        
+        .dropdown-menu a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            text-decoration: none;
+            color: var(--text);
+            transition: background-color 0.3s;
+        }
+        
+        .dropdown-menu a:hover {
+            background-color: var(--light);
+            color: var(--primary);
+        }
+        
+        .dropdown-menu i {
+            width: 20px;
+            text-align: center;
+        }
+
         /* Auth Modal Styles */
         .auth-modal {
             display: none;
@@ -368,6 +434,10 @@
             
             .user-type-selection {
                 flex-direction: column;
+            }
+            
+            .dropdown-menu {
+                right: -50px;
             }
         }
         /* Mobile Menu */
@@ -1276,7 +1346,7 @@
                     <li><a href="#testimonials">Testimonials</a></li>
                 </ul>
             </nav>
-            <div class="header-actions">
+            <div class="header-actions" id="headerActions">
                 <div class="search-box">
                     <input type="text" placeholder="Search products...">
                     <i class="fas fa-search"></i>
@@ -1706,7 +1776,7 @@
             if (user) {
                 // User is signed in
                 db.collection('users').doc(user.uid).get().then((doc) => {
-                    if (doc.exists()) {
+                    if (doc.exists) {
                         updateAuthUI(user, doc.data());
                     }
                 });
@@ -1768,13 +1838,40 @@
                 
                 // Fetch user data from Firestore
                 const userDoc = await db.collection('users').doc(user.uid).get();
-                if (userDoc.exists()) {
+                if (userDoc.exists) {
                     const userData = userDoc.data();
                     
                     // Update UI
                     updateAuthUI(user, userData);
                     closeAuthModalFunc();
                     showNotification('Login successful!');
+                } else {
+                    // Create user document if it doesn't exist
+                    await db.collection('users').doc(user.uid).set({
+                        uid: user.uid,
+                        email: user.email,
+                        name: user.email.split('@')[0],
+                        role: 'buyer',
+                        createdAt: new Date().toISOString(),
+                        verificationStatus: 'verified',
+                        phone: '',
+                        address: '',
+                        state: '',
+                        city: '',
+                        farmName: '',
+                        farmSize: 0,
+                        farmLocation: '',
+                        farmAddress: '',
+                        yearsExperience: 0,
+                        mainProducts: ''
+                    });
+                    
+                    updateAuthUI(user, { 
+                        name: user.email.split('@')[0], 
+                        role: 'buyer' 
+                    });
+                    closeAuthModalFunc();
+                    showNotification('Login successful! New profile created.');
                 }
             } catch (error) {
                 console.error('Login error:', error);
@@ -1871,13 +1968,13 @@
     
     // Function to update UI after authentication
     function updateAuthUI(user, userData = null) {
-        const authButtons = document.querySelector('.header-actions');
+        const headerActions = document.getElementById('headerActions');
         
         if (user && userData) {
             // User is logged in
             const initials = userData.name ? userData.name.split(' ').map(n => n[0]).join('') : 'U';
             
-            authButtons.innerHTML = `
+            headerActions.innerHTML = `
                 <div class="search-box">
                     <input type="text" placeholder="Search products...">
                     <i class="fas fa-search"></i>
@@ -1886,7 +1983,7 @@
                     <i class="fas fa-shopping-cart"></i>
                     <span class="cart-count">0</span>
                 </div>
-                <div class="user-profile profile-dropdown">
+                <div class="user-profile">
                     <div class="profile-avatar">${initials}</div>
                     <div class="dropdown-menu">
                         <ul>
@@ -1899,16 +1996,64 @@
                 </div>
             `;
             
+            // Add cart functionality
+            const cartIcon = document.getElementById('cartIcon');
+            if (cartIcon) {
+                cartIcon.addEventListener('click', function() {
+                    const cartSidebar = document.getElementById('cartSidebar');
+                    const overlay = document.getElementById('overlay');
+                    if (cartSidebar && overlay) {
+                        cartSidebar.classList.add('active');
+                        overlay.classList.add('active');
+                    }
+                });
+            }
+            
             // Add logout functionality
-            document.getElementById('logoutBtn').addEventListener('click', async function(e) {
-                e.preventDefault();
-                try {
-                    await auth.signOut();
-                    location.reload();
-                } catch (error) {
-                    console.error('Logout error:', error);
-                }
-            });
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    try {
+                        await auth.signOut();
+                        location.reload();
+                    } catch (error) {
+                        console.error('Logout error:', error);
+                        showNotification('Logout failed. Please try again.', 'error');
+                    }
+                });
+            }
+        } else {
+            // User is not logged in - show default header actions
+            headerActions.innerHTML = `
+                <div class="search-box">
+                    <input type="text" placeholder="Search products...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="cart-icon" id="cartIcon">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-count">0</span>
+                </div>
+                <button class="cta-button" id="joinNowBtn">Join Now</button>
+            `;
+            
+            // Reattach event listeners
+            const joinNowBtn = document.getElementById('joinNowBtn');
+            if (joinNowBtn) {
+                joinNowBtn.addEventListener('click', openAuthModal);
+            }
+            
+            const cartIcon = document.getElementById('cartIcon');
+            if (cartIcon) {
+                cartIcon.addEventListener('click', function() {
+                    const cartSidebar = document.getElementById('cartSidebar');
+                    const overlay = document.getElementById('overlay');
+                    if (cartSidebar && overlay) {
+                        cartSidebar.classList.add('active');
+                        overlay.classList.add('active');
+                    }
+                });
+            }
         }
     }
 
@@ -2127,7 +2272,7 @@
     // Cart functionality
     let cart = [];
     let currentProduct = null;
-    const cartIcon = document.getElementById('cartIcon');
+    let cartIcon = document.getElementById('cartIcon');
     const cartSidebar = document.getElementById('cartSidebar');
     const closeCart = document.getElementById('closeCart');
     const overlay = document.getElementById('overlay');
@@ -2172,62 +2317,76 @@
         });
         
         // Navigation buttons
-        document.getElementById('joinNowBtn').addEventListener('click', function() {
+        document.getElementById('joinNowBtn')?.addEventListener('click', function() {
             document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
         });
         
-        document.getElementById('mobileJoinBtn').addEventListener('click', function() {
+        document.getElementById('mobileJoinBtn')?.addEventListener('click', function() {
             document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
             mobileNav.classList.remove('active');
         });
         
-        document.getElementById('getStartedBtn').addEventListener('click', function() {
+        document.getElementById('getStartedBtn')?.addEventListener('click', function() {
             document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
         });
         
-        // Cart functionality
-        cartIcon.addEventListener('click', function() {
-            cartSidebar.classList.add('active');
-            overlay.classList.add('active');
-        });
+        // Cart functionality - check if element exists
+        if (cartIcon) {
+            cartIcon.addEventListener('click', function() {
+                cartSidebar.classList.add('active');
+                overlay.classList.add('active');
+            });
+        }
         
-        closeCart.addEventListener('click', function() {
-            cartSidebar.classList.remove('active');
-            overlay.classList.remove('active');
-        });
+        if (closeCart) {
+            closeCart.addEventListener('click', function() {
+                cartSidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            });
+        }
         
-        overlay.addEventListener('click', function() {
-            cartSidebar.classList.remove('active');
-            overlay.classList.remove('active');
-            paymentGateway.classList.remove('active');
-            productModal.classList.remove('active');
-        });
+        if (overlay) {
+            overlay.addEventListener('click', function() {
+                cartSidebar.classList.remove('active');
+                overlay.classList.remove('active');
+                if (paymentGateway) paymentGateway.classList.remove('active');
+                if (productModal) productModal.classList.remove('active');
+            });
+        }
         
-        checkoutBtn.addEventListener('click', function() {
-            if (cart.length === 0) {
-                alert('Your cart is empty!');
-                return;
-            }
-            
-            // Show payment gateway
-            showPaymentGateway();
-        });
+        if (checkoutBtn) {
+            checkoutBtn.addEventListener('click', function() {
+                if (cart.length === 0) {
+                    alert('Your cart is empty!');
+                    return;
+                }
+                
+                // Show payment gateway
+                showPaymentGateway();
+            });
+        }
         
         // Payment gateway functionality
-        closePayment.addEventListener('click', function() {
-            paymentGateway.classList.remove('active');
-            overlay.classList.remove('active');
-        });
+        if (closePayment) {
+            closePayment.addEventListener('click', function() {
+                paymentGateway.classList.remove('active');
+                overlay.classList.remove('active');
+            });
+        }
         
-        payButton.addEventListener('click', function() {
-            processPayment();
-        });
+        if (payButton) {
+            payButton.addEventListener('click', function() {
+                processPayment();
+            });
+        }
         
         // Modal functionality
-        closeModal.addEventListener('click', function() {
-            productModal.classList.remove('active');
-            overlay.classList.remove('active');
-        });
+        if (closeModal) {
+            closeModal.addEventListener('click', function() {
+                productModal.classList.remove('active');
+                overlay.classList.remove('active');
+            });
+        }
         
         // Load products
         loadProducts();
@@ -2236,6 +2395,8 @@
 
     // Load products into the grid
     function loadProducts() {
+        if (!productsGrid) return;
+        
         productsGrid.innerHTML = '';
         
         products.forEach(product => {
@@ -2258,23 +2419,27 @@
         });
         
         // Add event listeners to buttons
-        document.querySelectorAll('.add-to-cart').forEach(button => {
-            button.addEventListener('click', function() {
-                const productId = parseInt(this.getAttribute('data-id'));
-                showProductOptions(productId, false);
+        setTimeout(() => {
+            document.querySelectorAll('.add-to-cart').forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = parseInt(this.getAttribute('data-id'));
+                    showProductOptions(productId, false);
+                });
             });
-        });
-        
-        document.querySelectorAll('.buy-now').forEach(button => {
-            button.addEventListener('click', function() {
-                const productId = parseInt(this.getAttribute('data-id'));
-                showProductOptions(productId, true);
+            
+            document.querySelectorAll('.buy-now').forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = parseInt(this.getAttribute('data-id'));
+                    showProductOptions(productId, true);
+                });
             });
-        });
+        }, 100);
     }
 
     // Load pre-harvest products
     function loadPreHarvestProducts() {
+        if (!preHarvestGrid) return;
+        
         preHarvestGrid.innerHTML = '';
         
         preHarvestProducts.forEach(product => {
@@ -2308,17 +2473,21 @@
         });
         
         // Add event listeners to pre-harvest buttons
-        document.querySelectorAll('.pre-harvest-card .add-to-cart').forEach(button => {
-            button.addEventListener('click', function() {
-                const productId = parseInt(this.getAttribute('data-id'));
-                const isPreHarvest = this.getAttribute('data-preharvest') === 'true';
-                showProductOptions(productId, false, isPreHarvest);
+        setTimeout(() => {
+            document.querySelectorAll('.pre-harvest-card .add-to-cart').forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = parseInt(this.getAttribute('data-id'));
+                    const isPreHarvest = this.getAttribute('data-preharvest') === 'true';
+                    showProductOptions(productId, false, isPreHarvest);
+                });
             });
-        });
+        }, 100);
     }
 
     // Show product options modal
     function showProductOptions(productId, buyNow = false, isPreHarvest = false) {
+        if (!productModal) return;
+        
         const productList = isPreHarvest ? preHarvestProducts : products;
         const product = productList.find(p => p.id === productId);
         
@@ -2361,23 +2530,31 @@
         `;
         
         // Add event listeners to quantity options
-        document.querySelectorAll('.quantity-option-select').forEach(option => {
-            option.addEventListener('click', function() {
-                document.querySelectorAll('.quantity-option-select').forEach(opt => {
-                    opt.classList.remove('selected');
+        setTimeout(() => {
+            document.querySelectorAll('.quantity-option-select').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.quantity-option-select').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    this.classList.add('selected');
+                    updateModalTotalPrice();
                 });
-                this.classList.add('selected');
-                updateModalTotalPrice();
             });
-        });
-        
-        // Add event listener to quantity input
-        document.getElementById('productQuantity').addEventListener('input', updateModalTotalPrice);
-        
-        // Add event listener to add to cart button
-        document.getElementById('addToCartModal').addEventListener('click', function() {
-            addToCartFromModal(buyNow);
-        });
+            
+            // Add event listener to quantity input
+            const quantityInput = document.getElementById('productQuantity');
+            if (quantityInput) {
+                quantityInput.addEventListener('input', updateModalTotalPrice);
+            }
+            
+            // Add event listener to add to cart button
+            const addToCartBtn = document.getElementById('addToCartModal');
+            if (addToCartBtn) {
+                addToCartBtn.addEventListener('click', function() {
+                    addToCartFromModal(buyNow);
+                });
+            }
+        }, 100);
         
         // Show modal
         productModal.classList.add('active');
@@ -2387,11 +2564,18 @@
     // Update modal total price
     function updateModalTotalPrice() {
         const selectedOption = document.querySelector('.quantity-option-select.selected');
-        const quantity = parseInt(document.getElementById('productQuantity').value) || 1;
+        const quantityInput = document.getElementById('productQuantity');
+        
+        if (!selectedOption || !quantityInput) return;
+        
+        const quantity = parseInt(quantityInput.value) || 1;
         const price = parseInt(selectedOption.getAttribute('data-price'));
         const total = price * quantity;
         
-        document.getElementById('modalTotalPrice').textContent = total;
+        const modalTotalPrice = document.getElementById('modalTotalPrice');
+        if (modalTotalPrice) {
+            modalTotalPrice.textContent = total;
+        }
     }
 
     // Add product to cart from modal
@@ -2399,7 +2583,11 @@
         if (!currentProduct) return;
         
         const selectedOption = document.querySelector('.quantity-option-select.selected');
-        const quantity = parseInt(document.getElementById('productQuantity').value) || 1;
+        const quantityInput = document.getElementById('productQuantity');
+        
+        if (!selectedOption || !quantityInput) return;
+        
+        const quantity = parseInt(quantityInput.value) || 1;
         const unit = selectedOption.getAttribute('data-unit');
         const price = parseInt(selectedOption.getAttribute('data-price'));
         const total = price * quantity;
@@ -2435,11 +2623,15 @@
         showNotification(`${currentProduct.name} added to cart!`);
         
         // Close modal
-        productModal.classList.remove('active');
-        overlay.classList.remove('active');
+        if (productModal) {
+            productModal.classList.remove('active');
+        }
+        if (overlay) {
+            overlay.classList.remove('active');
+        }
         
         // If buy now, open cart
-        if (buyNow) {
+        if (buyNow && cartSidebar) {
             cartSidebar.classList.add('active');
             overlay.classList.add('active');
         }
@@ -2449,46 +2641,54 @@
     function updateCartDisplay() {
         // Update cart count
         const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
-        cartCount.textContent = totalItems;
+        if (cartCount) {
+            cartCount.textContent = totalItems;
+        }
         
         // Update cart items
-        cartItems.innerHTML = '';
-        
-        if (cart.length === 0) {
-            cartItems.innerHTML = '<p>Your cart is empty</p>';
-        } else {
-            cart.forEach(item => {
-                const cartItem = document.createElement('div');
-                cartItem.className = 'cart-item';
-                cartItem.innerHTML = `
-                    <img src="${item.image}" alt="${item.name}" class="cart-item-image">
-                    <div class="cart-item-details">
-                        <h4 class="cart-item-title">${item.name} ${item.isPreHarvest ? '(Pre-Harvest)' : ''}</h4>
-                        <div class="cart-item-variant">${item.unit}</div>
-                        <div class="cart-item-price">₦${item.price} x ${item.quantity}</div>
-                        <div class="cart-item-quantity">
-                            <button class="quantity-btn" data-id="${item.id}" data-unit="${item.unit}" data-action="decrease">-</button>
-                            <span>${item.quantity}</span>
-                            <button class="quantity-btn" data-id="${item.id}" data-unit="${item.unit}" data-action="increase">+</button>
-                        </div>
-                    </div>
-                `;
-                cartItems.appendChild(cartItem);
-            });
+        if (cartItems) {
+            cartItems.innerHTML = '';
             
-            // Add event listeners to quantity buttons
-            document.querySelectorAll('.quantity-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const productId = parseInt(this.getAttribute('data-id'));
-                    const unit = this.getAttribute('data-unit');
-                    const action = this.getAttribute('data-action');
-                    updateQuantity(productId, unit, action);
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<p>Your cart is empty</p>';
+            } else {
+                cart.forEach(item => {
+                    const cartItem = document.createElement('div');
+                    cartItem.className = 'cart-item';
+                    cartItem.innerHTML = `
+                        <img src="${item.image}" alt="${item.name}" class="cart-item-image">
+                        <div class="cart-item-details">
+                            <h4 class="cart-item-title">${item.name} ${item.isPreHarvest ? '(Pre-Harvest)' : ''}</h4>
+                            <div class="cart-item-variant">${item.unit}</div>
+                            <div class="cart-item-price">₦${item.price} x ${item.quantity}</div>
+                            <div class="cart-item-quantity">
+                                <button class="quantity-btn" data-id="${item.id}" data-unit="${item.unit}" data-action="decrease">-</button>
+                                <span>${item.quantity}</span>
+                                <button class="quantity-btn" data-id="${item.id}" data-unit="${item.unit}" data-action="increase">+</button>
+                            </div>
+                        </div>
+                    `;
+                    cartItems.appendChild(cartItem);
                 });
-            });
+                
+                // Add event listeners to quantity buttons
+                setTimeout(() => {
+                    document.querySelectorAll('.quantity-btn').forEach(button => {
+                        button.addEventListener('click', function() {
+                            const productId = parseInt(this.getAttribute('data-id'));
+                            const unit = this.getAttribute('data-unit');
+                            const action = this.getAttribute('data-action');
+                            updateQuantity(productId, unit, action);
+                        });
+                    });
+                }, 100);
+            }
         }
         
         // Update total
-        cartTotal.textContent = '₦' + calculateCartTotal();
+        if (cartTotal) {
+            cartTotal.textContent = '₦' + calculateCartTotal();
+        }
     }
 
     // Update item quantity in cart
@@ -2519,28 +2719,32 @@
 
     // Show payment gateway
     function showPaymentGateway() {
+        if (!paymentGateway) return;
+        
         // Update payment summary
         const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
         const totalAmount = calculateCartTotal();
         
-        paymentItems.textContent = totalItems;
-        paymentTotal.textContent = '₦' + totalAmount;
+        if (paymentItems) paymentItems.textContent = totalItems;
+        if (paymentTotal) paymentTotal.textContent = '₦' + totalAmount;
         
         // Show payment gateway
         paymentGateway.classList.add('active');
         overlay.classList.add('active');
         
         // Reset form
-        customerName.value = '';
-        customerEmail.value = '';
-        customerPhone.value = '';
-        paymentStatus.classList.remove('active');
+        if (customerName) customerName.value = '';
+        if (customerEmail) customerEmail.value = '';
+        if (customerPhone) customerPhone.value = '';
+        if (paymentStatus) paymentStatus.classList.remove('active');
     }
 
     // Process payment using Interswitch Inline Checkout
     function processPayment() {
+        if (!paymentGateway) return;
+        
         // Validate form
-        if (!customerName.value || !customerEmail.value || !customerPhone.value) {
+        if (!customerName || !customerName.value || !customerEmail || !customerEmail.value || !customerPhone || !customerPhone.value) {
             alert('Please fill in all required fields');
             return;
         }
@@ -2565,29 +2769,30 @@
         });
         
         // Show processing message
-        paymentStatus.innerHTML = `
-            <div class="payment-success">
-                <i class="fas fa-spinner fa-spin"></i> Initializing payment...
-            </div>
-        `;
-        paymentStatus.classList.add('active');
+        if (paymentStatus) {
+            paymentStatus.innerHTML = `
+                <div class="payment-success">
+                    <i class="fas fa-spinner fa-spin"></i> Initializing payment...
+                </div>
+            `;
+            paymentStatus.classList.add('active');
+        }
         
-        // Interswitch payment configuration - FIXED
-        // Sample paymentRequest object for reference
+        // Interswitch payment configuration
         const paymentRequest = {
-            merchant_code: "MX153376",          // Your merchant code (required)
-            pay_item_id: "5826784",             // Your pay item ID (required)
-            pay_item_name: "GrowNet Agricultural Products", // Name of item (required for inline)
-            txn_ref: txnRef,                     // Unique transaction reference (required)
-            amount: totalAmount * 100,           // Amount in kobo (required)
-            currency: 566,                       // NGN currency code (required)
-            cust_name: customerName.value,       // Customer name (optional)
-            cust_email: customerEmail.value,     // Customer email (required)
-            cust_id: customerPhone.value,        // Customer ID (optional)
-            cust_mobile_no: customerPhone.value, // Customer mobile (optional)
-            site_redirect_url: window.location.href, // Redirect URL (recommended for inline)
-            mode: 'LIVE',                        // 'LIVE' for production, 'TEST' for sandbox
-            onComplete: paymentCallback          // Callback function (required)
+            merchant_code: "MX153376",
+            pay_item_id: "5826784",
+            pay_item_name: "GrowNet Agricultural Products",
+            txn_ref: txnRef,
+            amount: totalAmount * 100,
+            currency: 566,
+            cust_name: customerName.value,
+            cust_email: customerEmail.value,
+            cust_id: customerPhone.value,
+            cust_mobile_no: customerPhone.value,
+            site_redirect_url: window.location.href,
+            mode: 'TEST', // Changed to TEST for development
+            onComplete: paymentCallback
         };
         
         console.log('Calling webpayCheckout with:', paymentRequest);
@@ -2595,14 +2800,16 @@
         // Check if Interswitch is loaded
         if (typeof window.webpayCheckout === 'undefined') {
             console.error('Interswitch webpayCheckout is not defined');
-            paymentStatus.innerHTML = `
-                <div class="payment-error">
-                    <i class="fas fa-times-circle"></i> Payment System Error
-                </div>
-                <p>Payment gateway not loaded. Please refresh the page.</p>
-                <p>If the problem persists, contact support.</p>
-            `;
-            paymentStatus.classList.add('active');
+            if (paymentStatus) {
+                paymentStatus.innerHTML = `
+                    <div class="payment-error">
+                        <i class="fas fa-times-circle"></i> Payment System Error
+                    </div>
+                    <p>Payment gateway not loaded. Please refresh the page.</p>
+                    <p>If the problem persists, contact support.</p>
+                `;
+                paymentStatus.classList.add('active');
+            }
             return;
         }
         
@@ -2611,18 +2818,25 @@
             window.webpayCheckout(paymentRequest);
         } catch (error) {
             console.error('Payment initialization error:', error);
-            paymentStatus.innerHTML = `
-                <div class="payment-error">
-                    <i class="fas fa-times-circle"></i> Payment Error
-                </div>
-                <p>Error: ${error.message}</p>
-                <button class="cta-button" style="margin-top: 15px;" id="tryAgain">Try Again</button>
-            `;
-            
-            // Add event listener to try again button
-            document.getElementById('tryAgain').addEventListener('click', function() {
-                paymentStatus.classList.remove('active');
-            });
+            if (paymentStatus) {
+                paymentStatus.innerHTML = `
+                    <div class="payment-error">
+                        <i class="fas fa-times-circle"></i> Payment Error
+                    </div>
+                    <p>Error: ${error.message}</p>
+                    <button class="cta-button" style="margin-top: 15px;" id="tryAgain">Try Again</button>
+                `;
+                
+                // Add event listener to try again button
+                setTimeout(() => {
+                    const tryAgainBtn = document.getElementById('tryAgain');
+                    if (tryAgainBtn) {
+                        tryAgainBtn.addEventListener('click', function() {
+                            paymentStatus.classList.remove('active');
+                        });
+                    }
+                }, 100);
+            }
         }
     }
 
@@ -2632,15 +2846,17 @@
         
         if (response && response.ResponseCode === "00") {
             // Payment successful
-            paymentStatus.innerHTML = `
-                <div class="payment-success">
-                    <i class="fas fa-check-circle"></i> Payment Successful!
-                </div>
-                <p>Transaction Reference: ${response.PaymentReference}</p>
-                <p>Amount Paid: ₦${response.Amount / 100}</p>
-                <p>Thank you for your purchase. Your order will be processed shortly.</p>
-                <button class="cta-button" style="margin-top: 15px;" id="continueShopping">Continue Shopping</button>
-            `;
+            if (paymentStatus) {
+                paymentStatus.innerHTML = `
+                    <div class="payment-success">
+                        <i class="fas fa-check-circle"></i> Payment Successful!
+                    </div>
+                    <p>Transaction Reference: ${response.PaymentReference}</p>
+                    <p>Amount Paid: ₦${response.Amount / 100}</p>
+                    <p>Thank you for your purchase. Your order will be processed shortly.</p>
+                    <button class="cta-button" style="margin-top: 15px;" id="continueShopping">Continue Shopping</button>
+                `;
+            }
             
             // Save order to Firestore if user is logged in
             const user = auth.currentUser;
@@ -2653,25 +2869,37 @@
             updateCartDisplay();
             
             // Add event listener to continue shopping button
-            document.getElementById('continueShopping').addEventListener('click', function() {
-                paymentGateway.classList.remove('active');
-                overlay.classList.remove('active');
-            });
+            setTimeout(() => {
+                const continueBtn = document.getElementById('continueShopping');
+                if (continueBtn) {
+                    continueBtn.addEventListener('click', function() {
+                        paymentGateway.classList.remove('active');
+                        overlay.classList.remove('active');
+                    });
+                }
+            }, 100);
         } else {
             // Payment failed
-            paymentStatus.innerHTML = `
-                <div class="payment-error">
-                    <i class="fas fa-times-circle"></i> Payment Failed
-                </div>
-                <p>${response.ResponseDescription || 'An error occurred during payment processing.'}</p>
-                <p>Please try again or contact support if the problem persists.</p>
-                <button class="cta-button" style="margin-top: 15px;" id="tryAgain">Try Again</button>
-            `;
-            
-            // Add event listener to try again button
-            document.getElementById('tryAgain').addEventListener('click', function() {
-                paymentStatus.classList.remove('active');
-            });
+            if (paymentStatus) {
+                paymentStatus.innerHTML = `
+                    <div class="payment-error">
+                        <i class="fas fa-times-circle"></i> Payment Failed
+                    </div>
+                    <p>${response.ResponseDescription || 'An error occurred during payment processing.'}</p>
+                    <p>Please try again or contact support if the problem persists.</p>
+                    <button class="cta-button" style="margin-top: 15px;" id="tryAgain">Try Again</button>
+                `;
+                
+                // Add event listener to try again button
+                setTimeout(() => {
+                    const tryAgainBtn = document.getElementById('tryAgain');
+                    if (tryAgainBtn) {
+                        tryAgainBtn.addEventListener('click', function() {
+                            paymentStatus.classList.remove('active');
+                        });
+                    }
+                }, 100);
+            }
         }
     }
 
@@ -2682,9 +2910,9 @@
                 userId: userId,
                 items: cart,
                 totalAmount: calculateCartTotal(),
-                customerName: customerName.value,
-                customerEmail: customerEmail.value,
-                customerPhone: customerPhone.value,
+                customerName: customerName ? customerName.value : '',
+                customerEmail: customerEmail ? customerEmail.value : '',
+                customerPhone: customerPhone ? customerPhone.value : '',
                 status: 'pending',
                 createdAt: new Date().toISOString(),
                 paymentStatus: 'completed'
@@ -2698,11 +2926,6 @@
     }
 
     // Make paymentCallback globally available
-    window.paymentCallback = paymentCallback;
-</script>
-
-<script>
-    // Interswitch callback function - keep this separate
     window.paymentCallback = paymentCallback;
 </script>
 </body>
