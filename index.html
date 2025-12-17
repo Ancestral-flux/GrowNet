@@ -2546,5 +2546,29 @@
         <script>
         window.paymentCallback = paymentCallback;
         </script>
+        
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
+      // TODO: Add SDKs for Firebase products that you want to use
+      // https://firebase.google.com/docs/web/setup#available-libraries
+
+      // Your web app's Firebase configuration
+      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+      const firebaseConfig = {
+        apiKey: "AIzaSyAZ3LWTB1ZGAp1bQHKP5HJ57v5cQf-Ub50",
+        authDomain: "grownet-id.firebaseapp.com",
+        projectId: "grownet-id",
+        storageBucket: "grownet-id.firebasestorage.app",
+        messagingSenderId: "604886920916",
+        appId: "1:604886920916:web:222a5cb3a5154cfb83d541",
+        measurementId: "G-RMX5X6D3KW"
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+    </script> 
 </body>
 </html>
