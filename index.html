@@ -1,2932 +1,709 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GrowNet - Agricultural Marketplace</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-
-    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌱</text></svg>">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        :root {
-            --primary: #2e7d32;
-            --primary-light: #4caf50;
-            --secondary: #ff9800;
-            --dark: #1b5e20;
-            --light: #f1f8e9;
-            --text: #333;
-            --white: #ffffff;
-        }
-        
-        body {
-            color: var(--text);
-            line-height: 1.6;
-            background-color: var(--light);
-        }
-        
-        .container {
-            width: 90%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 15px;
-        }
-        
-        /* Header Styles */
-        header {
-            background-color: var(--white);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        
-        .header-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 0;
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .logo h1 {
-            font-size: 1.5rem;
-            color: var(--primary);
-        }
-        
-        .logo i {
-            font-size: 1.8rem;
-            color: var(--primary);
-        }
-        
-        nav ul {
-            display: flex;
-            list-style: none;
-            gap: 15px;
-        }
-        
-        nav a {
-            text-decoration: none;
-            color: var(--text);
-            font-weight: 500;
-            transition: color 0.3s;
-            font-size: 0.9rem;
-        }
-        
-        nav a:hover {
-            color: var(--primary);
-        }
-        
-        .header-actions {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-        
-        .search-box {
-            display: flex;
-            background: #f5f5f5;
-            border-radius: 20px;
-            padding: 5px 15px;
-        }
-        
-        .search-box input {
-            border: none;
-            background: transparent;
-            outline: none;
-            width: 200px;
-        }
-        
-        .cart-icon {
-            position: relative;
-            font-size: 1.2rem;
-            color: var(--primary);
-            cursor: pointer;
-        }
-        
-        .cart-count {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: var(--secondary);
-            color: white;
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            font-size: 0.7rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .cta-button {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 5px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            font-size: 0.9rem;
-        }
-        
-        .cta-button:hover {
-            background-color: var(--dark);
-        }
-
-        /* Profile Dropdown Styles */
-        .user-profile {
-            position: relative;
-            cursor: pointer;
-        }
-        
-        .profile-avatar {
-            width: 36px;
-            height: 36px;
-            background-color: var(--primary);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-        
-        .dropdown-menu {
-            display: none;
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background-color: white;
-            min-width: 200px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            border-radius: 5px;
-            z-index: 100;
-            margin-top: 10px;
-        }
-        
-        .user-profile:hover .dropdown-menu {
-            display: block;
-        }
-        
-        .dropdown-menu ul {
-            list-style: none;
-            padding: 10px 0;
-        }
-        
-        .dropdown-menu li {
-            padding: 0;
-        }
-        
-        .dropdown-menu a {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 20px;
-            text-decoration: none;
-            color: var(--text);
-            transition: background-color 0.3s;
-        }
-        
-        .dropdown-menu a:hover {
-            background-color: var(--light);
-            color: var(--primary);
-        }
-        
-        .dropdown-menu i {
-            width: 20px;
-            text-align: center;
-        }
-
-        /* Auth Modal Styles */
-        .auth-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1003;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        
-        .auth-modal.active {
-            display: flex;
-            opacity: 1;
-        }
-        
-        .auth-modal-content {
-            background: white;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 450px;
-            max-height: 90vh;
-            overflow-y: auto;
-            padding: 0;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            transform: translateY(-20px);
-            transition: transform 0.3s;
-        }
-        
-        .auth-modal.active .auth-modal-content {
-            transform: translateY(0);
-        }
-        
-        .auth-modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 25px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .auth-modal-header h3 {
-            color: var(--primary);
-            font-size: 1.4rem;
-        }
-        
-        .close-auth-modal {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #666;
-            transition: color 0.3s;
-        }
-        
-        .close-auth-modal:hover {
-            color: var(--primary);
-        }
-        
-        .auth-tabs {
-            display: flex;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .auth-tab {
-            flex: 1;
-            padding: 15px;
-            text-align: center;
-            background: none;
-            border: none;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            color: #666;
-        }
-        
-        .auth-tab.active {
-            color: var(--primary);
-            border-bottom: 3px solid var(--primary);
-        }
-        
-        .auth-form {
-            padding: 25px;
-        }
-        
-        .auth-form-section {
-            display: none;
-        }
-        
-        .auth-form-section.active {
-            display: block;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: #555;
-        }
-        
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-            transition: border-color 0.3s;
-        }
-        
-        .form-group input:focus,
-        .form-group select:focus {
-            border-color: var(--primary);
-            outline: none;
-        }
-        
-        .user-type-selection {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .user-type-option {
-            flex: 1;
-            text-align: center;
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .user-type-option:hover {
-            border-color: var(--primary-light);
-        }
-        
-        .user-type-option.selected {
-            border-color: var(--primary);
-            background-color: var(--light);
-        }
-        
-        .user-type-icon {
-            font-size: 2rem;
-            margin-bottom: 10px;
-            color: var(--primary);
-        }
-        
-        .user-type-option h4 {
-            margin-bottom: 5px;
-            color: var(--dark);
-        }
-        
-        .user-type-option p {
-            font-size: 0.85rem;
-            color: #666;
-        }
-        
-        .form-footer {
-            margin-top: 20px;
-            text-align: center;
-        }
-        
-        .submit-btn {
-            width: 100%;
-            padding: 12px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        
-        .submit-btn:hover {
-            background: var(--dark);
-        }
-        
-        .form-footer p {
-            margin-top: 15px;
-            color: #666;
-        }
-        
-        .form-footer a {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 500;
-        }
-        
-        .form-footer a:hover {
-            text-decoration: underline;
-        }
-        
-        .error-message {
-            color: #f44336;
-            font-size: 0.85rem;
-            margin-top: 5px;
-            display: none;
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .auth-modal-content {
-                width: 95%;
-            }
-            
-            .user-type-selection {
-                flex-direction: column;
-            }
-            
-            .dropdown-menu {
-                right: -50px;
-            }
-        }
-        /* Mobile Menu */
-        .mobile-menu-btn {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            color: var(--primary);
-            cursor: pointer;
-        }
-        
-        .mobile-nav {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            width: 100%;
-            background-color: var(--white);
-            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
-            z-index: 99;
-        }
-        
-        .mobile-nav.active {
-            display: block;
-        }
-        
-        .mobile-nav ul {
-            list-style: none;
-            padding: 20px;
-        }
-        
-        .mobile-nav li {
-            margin-bottom: 15px;
-        }
-        
-        .mobile-nav a {
-            text-decoration: none;
-            color: var(--text);
-            font-weight: 500;
-            display: block;
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        /* Hero Section */
-        .hero {
-            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1632&q=80');
-            background-size: cover;
-            background-position: center;
-            color: white;
-            text-align: center;
-            padding: 80px 0;
-        }
-        
-        .hero h2 {
-            font-size: 2rem;
-            margin-bottom: 20px;
-        }
-        
-        .hero p {
-            font-size: 1.1rem;
-            max-width: 700px;
-            margin: 0 auto 30px;
-            padding: 0 15px;
-        }
-        
-        /* Categories Section */
-        .categories {
-            padding: 40px 0;
-            background-color: var(--white);
-        }
-        
-        .categories-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-        }
-        
-        .category-card {
-            background: var(--light);
-            border-radius: 8px;
-            padding: 20px 10px;
-            text-align: center;
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-        
-        .category-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        .category-card i {
-            font-size: 2rem;
-            color: var(--primary);
-            margin-bottom: 10px;
-        }
-        
-        /* Products Section */
-        .products {
-            padding: 60px 0;
-            background-color: var(--light);
-        }
-        
-        .section-title {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        
-        .section-title h2 {
-            font-size: 1.8rem;
-            color: var(--primary);
-            margin-bottom: 15px;
-        }
-        
-        .section-title p {
-            max-width: 700px;
-            margin: 0 auto;
-            color: #666;
-            padding: 0 15px;
-        }
-        
-        .products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 25px;
-        }
-        
-        .product-card {
-            background-color: var(--white);
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            transition: transform 0.3s;
-        }
-        
-        .product-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .product-image {
-            height: 200px;
-            width: 100%;
-            object-fit: cover;
-        }
-        
-        .product-info {
-            padding: 20px;
-        }
-        
-        .product-title {
-            font-size: 1.1rem;
-            margin-bottom: 10px;
-            color: var(--dark);
-        }
-        
-        .product-description {
-            color: #666;
-            font-size: 0.9rem;
-            margin-bottom: 15px;
-        }
-        
-        .product-price {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--primary);
-            margin-bottom: 15px;
-        }
-        
-        .product-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .add-to-cart {
-            flex: 1;
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 8px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        
-        .add-to-cart:hover {
-            background: var(--dark);
-        }
-        
-        .buy-now {
-            flex: 1;
-            background: var(--secondary);
-            color: white;
-            border: none;
-            padding: 8px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        
-        .buy-now:hover {
-            background: #e68900;
-        }
-        
-        /* Pre-Harvest Section */
-        .pre-harvest {
-            padding: 60px 0;
-            background-color: var(--white);
-        }
-        
-        .pre-harvest-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 25px;
-        }
-        
-        .pre-harvest-card {
-            background-color: var(--white);
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            border-left: 4px solid var(--secondary);
-        }
-        
-        .pre-harvest-header {
-            background: var(--light);
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .pre-harvest-badge {
-            background: var(--secondary);
-            color: white;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-        
-        .harvest-date {
-            font-size: 0.9rem;
-            color: #666;
-        }
-        
-        .pre-harvest-info {
-            padding: 20px;
-        }
-        
-        .quantity-options {
-            margin: 15px 0;
-        }
-        
-        .quantity-option {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .quantity-option:last-child {
-            border-bottom: none;
-        }
-        
-        /* Product Selection Modal */
-        .product-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1001;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .product-modal.active {
-            display: flex;
-        }
-        
-        .modal-content {
-            background: white;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow-y: auto;
-            padding: 25px;
-        }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .close-modal {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #666;
-        }
-        
-        .quantity-selector {
-            margin: 20px 0;
-        }
-        
-        .quantity-option-select {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .quantity-option-select:hover {
-            border-color: var(--primary);
-            background: var(--light);
-        }
-        
-        .quantity-option-select.selected {
-            border-color: var(--primary);
-            background: var(--light);
-        }
-        
-        .option-price {
-            font-weight: 600;
-            color: var(--primary);
-        }
-        
-        .quantity-input {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin: 20px 0;
-        }
-        
-        .quantity-input input {
-            width: 80px;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            text-align: center;
-        }
-        
-        /* Cart Sidebar */
-        .cart-sidebar {
-            position: fixed;
-            top: 0;
-            right: -400px;
-            width: 100%;
-            max-width: 400px;
-            height: 100vh;
-            background: white;
-            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
-            z-index: 1000;
-            transition: right 0.3s;
-            padding: 20px;
-            overflow-y: auto;
-        }
-        
-        .cart-sidebar.active {
-            right: 0;
-        }
-        
-        .cart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .close-cart {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #666;
-        }
-        
-        .cart-items {
-            margin-bottom: 20px;
-        }
-        
-        .cart-item {
-            display: flex;
-            gap: 15px;
-            padding: 15px 0;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .cart-item-image {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 5px;
-        }
-        
-        .cart-item-details {
-            flex: 1;
-        }
-        
-        .cart-item-title {
-            font-weight: 500;
-            margin-bottom: 5px;
-        }
-        
-        .cart-item-variant {
-            font-size: 0.85rem;
-            color: #666;
-            margin-bottom: 5px;
-        }
-        
-        .cart-item-price {
-            color: var(--primary);
-            font-weight: 600;
-        }
-        
-        .cart-item-quantity {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        
-        .quantity-btn {
-            width: 25px;
-            height: 25px;
-            border: 1px solid #ddd;
-            background: white;
-            border-radius: 3px;
-            cursor: pointer;
-        }
-        
-        .cart-total {
-            padding: 20px 0;
-            border-top: 1px solid #eee;
-            font-size: 1.2rem;
-            font-weight: 600;
-            display: flex;
-            justify-content: space-between;
-        }
-        
-        .checkout-btn {
-            width: 100%;
-            padding: 12px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        
-        .checkout-btn:hover {
-            background: var(--dark);
-        }
-        
-        .overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-        }
-        
-        .overlay.active {
-            display: block;
-        }
-        
-        /* Payment Gateway Styles */
-        .payment-gateway {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 90%;
-            max-width: 500px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 5px 30px rgba(0,0,0,0.3);
-            z-index: 1002;
-            padding: 30px;
-        }
-        
-        .payment-gateway.active {
-            display: block;
-        }
-        
-        .payment-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .close-payment {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #666;
-        }
-        
-        .payment-details {
-            margin-bottom: 20px;
-        }
-        
-        .payment-summary {
-            background: var(--light);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        
-        .payment-summary h4 {
-            margin-bottom: 10px;
-            color: var(--primary);
-        }
-        
-        .payment-summary-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-        }
-        
-        .payment-form {
-            margin-top: 20px;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-        
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-        
-        .pay-button {
-            width: 100%;
-            padding: 12px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        
-        .pay-button:hover {
-            background: var(--dark);
-        }
-        
-        .payment-status {
-            display: none;
-            text-align: center;
-            padding: 20px;
-        }
-        
-        .payment-status.active {
-            display: block;
-        }
-        
-        .payment-success {
-            color: var(--primary);
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-        }
-        
-        .payment-error {
-            color: #f44336;
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-        }
-        
-        /* How It Works Section */
-        .how-it-works {
-            padding: 60px 0;
-            background-color: var(--white);
-        }
-        
-        .steps {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-        }
-        
-        .step {
-            text-align: center;
-            padding: 20px;
-        }
-        
-        .step-number {
-            width: 50px;
-            height: 50px;
-            background: var(--primary);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 15px;
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
-        
-        .step h3 {
-            margin-bottom: 10px;
-            color: var(--dark);
-        }
-        
-        /* Testimonials */
-        .testimonials {
-            padding: 60px 0;
-            background-color: var(--light);
-        }
-        
-        .testimonial-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-        }
-        
-        .testimonial {
-            background-color: var(--white);
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
-        
-        .testimonial-text {
-            font-style: italic;
-            margin-bottom: 20px;
-        }
-        
-        .testimonial-author {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .author-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background-color: #ddd;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .author-info h4 {
-            margin-bottom: 5px;
-        }
-        
-        .author-info p {
-            color: #666;
-            font-size: 0.9rem;
-        }
-        
-        /* Footer */
-        footer {
-            background-color: var(--dark);
-            color: white;
-            padding: 50px 0 20px;
-        }
-        
-        .footer-content {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 30px;
-            margin-bottom: 40px;
-        }
-        
-        .footer-column h3 {
-            font-size: 1.2rem;
-            margin-bottom: 20px;
-            position: relative;
-            padding-bottom: 10px;
-        }
-        
-        .footer-column h3::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            width: 40px;
-            height: 2px;
-            background-color: var(--secondary);
-        }
-        
-        .footer-column ul {
-            list-style: none;
-        }
-        
-        .footer-column ul li {
-            margin-bottom: 10px;
-        }
-        
-        .footer-column a {
-            color: #ccc;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-        
-        .footer-column a:hover {
-            color: white;
-        }
-        
-        .social-links {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        .social-links a {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            background-color: rgba(255,255,255,0.1);
-            border-radius: 50%;
-            transition: background-color 0.3s;
-        }
-        
-        .social-links a:hover {
-            background-color: var(--primary);
-        }
-        
-        .copyright {
-            text-align: center;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            font-size: 0.9rem;
-            color: #ccc;
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .header-container {
-                flex-wrap: wrap;
-            }
-            
-            nav, .search-box {
-                display: none;
-            }
-            
-            .mobile-menu-btn {
-                display: block;
-            }
-            
-            .hero h2 {
-                font-size: 1.8rem;
-            }
-            
-            .hero p {
-                font-size: 1rem;
-            }
-            
-            .cart-sidebar {
-                max-width: 100%;
-            }
-        }
-        
-        @media (min-width: 769px) {
-            .mobile-nav {
-                display: none !important;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Happy Birthday Sophia 💕</title>
+  <!-- Fonts & styles -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;600;700&family=Nunito:wght@300;400;600;700&family=Shadows+Into+Light&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background: linear-gradient(145deg, #ffdde5 0%, #fff9fb 40%, #ffcfe0 100%);
+      font-family: 'Nunito', sans-serif;
+      color: #5e2a4a;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+    /* floating sparkles background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: url('data:image/svg+xml;utf8,<svg width="100%" height="100%" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg"><circle cx="10%" cy="20%" r="2" fill="%23ff9eb5" opacity="0.5"><animate attributeName="cy" values="20%;22%;20%" dur="8s" repeatCount="indefinite"/></circle><circle cx="85%" cy="70%" r="3" fill="%23ff6b9d" opacity="0.4"><animate attributeName="cy" values="70%;68%;70%" dur="11s" repeatCount="indefinite"/></circle><circle cx="45%" cy="10%" r="2.5" fill="%23ffffff" opacity="0.7"><animate attributeName="cy" values="10%;13%;10%" dur="7s" repeatCount="indefinite"/></circle><circle cx="70%" cy="40%" r="2" fill="%23ffb6c1" opacity="0.6"><animate attributeName="cy" values="40%;43%;40%" dur="9s" repeatCount="indefinite"/></circle><circle cx="30%" cy="80%" r="2" fill="%23ffcfe0" opacity="0.5"><animate attributeName="cy" values="80%;77%;80%" dur="10s" repeatCount="indefinite"/></circle></svg>') repeat;
+      animation: driftSparkle 50s linear infinite;
+      z-index: -1;
+    }
+    @keyframes driftSparkle {
+      0% { background-position: 0 0; }
+      100% { background-position: 200px 200px; }
+    }
+    /* main container */
+    .container {
+      max-width: min(1200px, 95%);
+      margin: 0 auto;
+      padding: 0 12px 90px 12px;
+    }
+    .main-content {
+      display: none;
+    }
+    /* envelope first screen */
+    .envelope-screen {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .envelope-title {
+      font-family: 'Dancing Script', cursive;
+      font-size: clamp(2.2rem, 10vw, 3.5rem);
+      color: #ff6b9d;
+      text-shadow: 0 4px 10px rgba(255,105,180,0.2);
+      margin-bottom: 1.5rem;
+    }
+    .envelope-img {
+      width: min(280px, 70vw);
+      cursor: pointer;
+      filter: drop-shadow(0 15px 25px rgba(255, 105, 180, 0.3));
+      transition: transform 0.3s ease;
+      animation: float 4s ease-in-out infinite;
+    }
+    .envelope-img:active { transform: scale(0.97); }
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+    .open-letter-preview {
+      max-width: 400px;
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(5px);
+      padding: 1rem 2rem;
+      border-radius: 60px;
+      margin-top: 2rem;
+      font-family: 'Shadows Into Light', cursive;
+      font-size: 1.5rem;
+      color: #b84a6e;
+      box-shadow: 0 5px 15px rgba(255,140,170,0.2);
+      opacity: 0;
+      transition: opacity 0.8s;
+      border: 1px solid white;
+    }
+    section {
+      background: rgba(255, 245, 250, 0.6);
+      backdrop-filter: blur(4px);
+      border-radius: 45px;
+      padding: clamp(1.5rem, 5vw, 2.5rem);
+      margin: 2rem 0;
+      box-shadow: 0 10px 30px rgba(255, 150, 180, 0.2);
+      border: 1px solid rgba(255,255,255,0.5);
+    }
+    h2 {
+      font-family: 'Dancing Script', cursive;
+      font-size: clamp(2rem, 7vw, 3rem);
+      color: #ff6b9d;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .message-box {
+      font-family: 'Nunito', sans-serif;
+      line-height: 1.7;
+      white-space: pre-line;
+      background: rgba(255,255,255,0.5);
+      padding: 1.8rem;
+      border-radius: 35px;
+      border: 1px dashed #ffb6c1;
+    }
+    .signature {
+      font-family: 'Shadows Into Light', cursive;
+      font-size: 1.8rem;
+      text-align: right;
+      margin-top: 2rem;
+    }
+    .qualities-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+    .quality-item {
+      background: #ffeef4;
+      padding: 1.2rem 0.8rem;
+      border-radius: 30px;
+      text-align: center;
+      font-weight: 600;
+      box-shadow: 0 6px 0 #ffb6c1;
+      border: 1px solid white;
+    }
+    .big-quote {
+      font-size: 1.6rem;
+      font-family: 'Dancing Script', cursive;
+      background: #ffdde5;
+      padding: 1rem;
+      border-radius: 40px;
+      text-align: center;
+      margin: 1.5rem 0 0;
+    }
+    /* slideshow */
+    .slideshow-container {
+      position: relative;
+      max-width: 800px;
+      margin: 2rem auto;
+      touch-action: pan-y pinch-zoom;
+    }
+    .slide-wrapper {
+      width: 100%;
+      aspect-ratio: 1/1.1;
+      position: relative;
+      border-radius: 30px;
+      overflow: hidden;
+      box-shadow: 0 20px 30px rgba(255, 80, 140, 0.2);
+      background: #ffe4eb;
+    }
+    .slide {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 1s ease;
+      background: white;
+      padding: 12px 12px 35px 12px;
+      border-radius: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 0 0 2px white;
+      pointer-events: none;
+    }
+    .slide.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .slide-img {
+      width: 100%;
+      height: 80%;
+      object-fit: cover;
+      border-radius: 20px;
+      background: #ffc0cb;
+    }
+    .caption {
+      font-family: 'Dancing Script', cursive;
+      font-size: clamp(1.2rem, 4vw, 1.6rem);
+      color: #a63b5e;
+      margin-top: 8px;
+      background: rgba(255,255,240,0.7);
+      padding: 4px 20px;
+      border-radius: 40px;
+    }
+    .arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #ffb6c1;
+      width: 44px;
+      height: 44px;
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(255,80,130,0.4);
+      transition: 0.2s;
+      user-select: none;
+      z-index: 10;
+    }
+    .arrow:active { transform: translateY(-50%) scale(0.9); background: #ff8da1; }
+    .prev { left: -15px; }
+    .next { right: -15px; }
+    .dot-container {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin: 15px 0;
+    }
+    .dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #ffb0c3;
+      transition: 0.3s;
+      cursor: pointer;
+    }
+    .dot.active {
+      background: #ff4d7a;
+      transform: scale(1.3);
+      box-shadow: 0 0 10px #ff88aa;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } }
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.2rem;
+    }
+    @media (min-width: 769px) {
+      .cards-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    .float-card {
+      background: white;
+      padding: 1.5rem 0.5rem;
+      border-radius: 30px;
+      text-align: center;
+      box-shadow: 0 10px 0 #ffb6c1;
+      font-size: 1.2rem;
+      font-weight: 600;
+      border: 2px solid white;
+      animation: cardFloat 5s infinite ease-in-out;
+    }
+    @keyframes cardFloat { 0%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+    .bounce-cake {
+      font-size: 5rem;
+      animation: bounce 2s infinite;
+      cursor: pointer;
+      text-align: center;
+    }
+    @keyframes bounce { 0%,100%{transform: translateY(0);} 50%{transform: translateY(-20px);} }
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(255, 220, 235, 0.9);
+      backdrop-filter: blur(10px);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 4px;
+      border-top: 2px solid white;
+      z-index: 1000;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 0.8rem;
+      color: #9e3c62;
+      font-weight: 600;
+      min-width: 44px;
+      padding: 6px 0;
+      border-radius: 30px;
+      transition: 0.2s;
+      text-decoration: none;
+    }
+    .nav-item span { font-size: 1.4rem; }
+    .nav-item.active { background: #ffb6c1; color: white; }
+    @media (min-width: 769px) {
+      .bottom-nav { display: none; }
+      .desktop-menu {
+        display: block;
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #ffe2ed;
+        padding: 12px 18px;
+        border-radius: 60px;
+        box-shadow: 0 8px 0 #ffb6c1;
+        z-index: 1000;
+        border: 2px solid white;
+      }
+      .desktop-menu select {
+        background: #ffb6c1;
+        border: none;
+        font-family: 'Nunito', sans-serif;
+        font-size: 1.2rem;
+        padding: 8px 20px;
+        border-radius: 40px;
+        color: white;
+        font-weight: bold;
+      }
+    }
+    .progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 4px;
+      background: #ff8db3;
+      width: 0%;
+      z-index: 2000;
+      transition: width 0.1s;
+    }
+    .mute-btn {
+      position: fixed;
+      bottom: 70px; right: 15px;
+      background: #ffc0d5;
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      z-index: 1500;
+      box-shadow: 0 4px 8px #ff86aa;
+      cursor: pointer;
+      border: 2px solid white;
+    }
+    .floating-elements {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 5;
+    }
+    .floating-elements span {
+      position: absolute;
+      font-size: 1.8rem;
+      animation: floatRand 8s infinite;
+    }
+    @keyframes floatRand {
+      0% { transform: translate(0,0) rotate(0); }
+      50% { transform: translate(20px, -20px) rotate(10deg); }
+      100% { transform: translate(0,0) rotate(0); }
+    }
+    /* Simple loader - DISAPPEARS FAST */
+    .loader {
+      position: fixed; 
+      inset: 0; 
+      background: #ffd5e3; 
+      z-index: 3000;
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+      font-size: 2rem; 
+      font-family: 'Dancing Script', cursive;
+      transition: opacity 0.3s;
+    }
+    .spinner {
+      border: 6px solid #ffe2f0; 
+      border-top: 6px solid #ff6b9d;
+      border-radius: 50%; 
+      width: 70px; 
+      height: 70px; 
+      animation: spin 1s linear infinite;
+      margin-right: 15px;
+    }
+    @keyframes spin { 0% { transform: rotate(0); } 100% { transform: rotate(360deg); } }
+  </style>
 </head>
 <body>
-        <!-- Auth Modal -->
-    <div class="auth-modal" id="authModal">
-        <div class="auth-modal-content">
-            <div class="auth-modal-header">
-                <h3>Welcome to GrowNet</h3>
-                <button class="close-auth-modal" id="closeAuthModal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="auth-tabs">
-                <button class="auth-tab active" data-tab="login">Login</button>
-                <button class="auth-tab" data-tab="register">Register</button>
-            </div>
-            <div class="auth-form">
-                <!-- Login Form -->
-                <div class="auth-form-section active" id="login-form">
-                    <div class="form-group">
-                        <label for="loginEmail">Email Address</label>
-                        <input type="email" id="loginEmail" placeholder="Enter your email">
-                        <div class="error-message" id="loginEmailError">Please enter a valid email address</div>
-                    </div>
-                    <div class="form-group">
-                        <label for="loginPassword">Password</label>
-                        <input type="password" id="loginPassword" placeholder="Enter your password">
-                        <div class="error-message" id="loginPasswordError">Password is required</div>
-                    </div>
-                    <div class="form-footer">
-                        <button class="submit-btn" id="loginBtn">Login</button>
-                        <p>Don't have an account? <a href="#" id="switchToRegister">Register here</a></p>
-                    </div>
-                </div>
-                
-                <!-- Registration Form -->
-                <div class="auth-form-section" id="register-form">
-                    <div class="form-group">
-                        <label for="registerName">Full Name</label>
-                        <input type="text" id="registerName" placeholder="Enter your full name">
-                        <div class="error-message" id="registerNameError">Full name is required</div>
-                    </div>
-                    <div class="form-group">
-                        <label for="registerEmail">Email Address</label>
-                        <input type="email" id="registerEmail" placeholder="Enter your email">
-                        <div class="error-message" id="registerEmailError">Please enter a valid email address</div>
-                    </div>
-                    <div class="form-group">
-                        <label for="registerPassword">Password</label>
-                        <input type="password" id="registerPassword" placeholder="Create a password">
-                        <div class="error-message" id="registerPasswordError">Password must be at least 6 characters</div>
-                    </div>
-                    <div class="form-group">
-                        <label for="registerConfirmPassword">Confirm Password</label>
-                        <input type="password" id="registerConfirmPassword" placeholder="Confirm your password">
-                        <div class="error-message" id="registerConfirmPasswordError">Passwords do not match</div>
-                    </div>
-                    <div class="form-group">
-                        <label>I am a:</label>
-                        <div class="user-type-selection">
-                            <div class="user-type-option" data-type="buyer">
-                                <div class="user-type-icon">
-                                    <i class="fas fa-shopping-cart"></i>
-                                </div>
-                                <h4>Buyer</h4>
-                                <p>Looking to purchase farm products</p>
-                            </div>
-                            <div class="user-type-option" data-type="farmer">
-                                <div class="user-type-icon">
-                                    <i class="fas fa-tractor"></i>
-                                </div>
-                                <h4>Farmer</h4>
-                                <p>Want to sell my farm products</p>
-                            </div>
-                        </div>
-                        <input type="hidden" id="userType" value="">
-                        <div class="error-message" id="userTypeError">Please select your user type</div>
-                    </div>
-                    <div class="form-footer">
-                        <button class="submit-btn" id="registerBtn">Create Account</button>
-                        <p>Already have an account? <a href="#" id="switchToLogin">Login here</a></p>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="progress-bar" id="progressBar"></div>
+<div class="floating-elements" id="floatingDecor"></div>
+
+<!-- Loader - disappears in 300ms -->
+<div class="loader" id="loader">
+  <div class="spinner"></div>
+  <span>opening love letter...</span>
+</div>
+
+
+<!-- ENVELOPE SCREEN -->
+<div id="envelopeScreen" class="envelope-screen">
+  <h1 class="envelope-title">Happy Birthday sophia! 💕</h1>
+  <!-- ENVELOPE - using tiny placeholder first, then your image -->
+  <img src="images/photo1.jpg" 
+       alt="pink envelope" 
+       class="envelope-img" 
+       id="envelopeImg" 
+       loading="eager">
+  <div class="open-letter-preview" id="previewMsg">A special birthday letter just for you...</div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="container main-content" id="mainContent">
+  <section id="message">
+    <h2>Happy Birthday sophia 🎂</h2>
+    <div class="message-box">
+      <p>Happy Birthday to my love 🎉</p>
+      <p>Today, I just want to take a moment to celebrate you not only because it's your birthday, but because meeting you has truly been something I'm deeply grateful for. Some people come into our lives and simply exist, but you came into mine and made it brighter, warmer, and better in ways I didn't expect.</p>
+      <p>Honestly, I sometimes wish I had met you much earlier, because it would have meant more time to create beautiful memories together, share more moments, and experience more of life's little joys side by side. Still, I'm thankful for the time we do have, and every memory with you already means a lot to me.</p>
+      <p>You are genuinely one of the most amazing people I've had the privilege to know. Your kindness, your energy, your creativity, and the way you carry yourself make you stand out so effortlessly. You deserve every beautiful thing life has to offer – happiness that stays, opportunities that grow, and dreams that come true beyond what you've imagined.</p>
+      <p>As you grow older and step into new chapters of your life, I also hope you continue to overcome your shyness more and more, because the world truly deserves to see the confident, talented, and wonderful person that you are. There's so much greatness in you, and I hope you always feel brave enough to show it without holding back.</p>
+      <p>I'm especially proud of your journey in content creation. The passion and effort you put into what you do are inspiring, and I truly believe this is only the beginning for you. I hope this year brings you bigger platforms, greater recognition, endless creativity, and the confidence to keep shining exactly as you are. May you become not just a great content creator, but one of the very best – someone who inspires people everywhere just by being authentically you.</p>
+      <p>On your special day, I wish you success, peace of mind, genuine laughter, and moments that remind you how loved and appreciated you are. May life continue to open doors for you, reward your hard work, and surround you with everything good and meaningful.</p>
+      <p>Thank you for being you. I'm really grateful our paths crossed, and I hope this new year of your life becomes your happiest and most successful one yet.</p>
+      <p class="signature">🌟 Happy Birthday once again sophia, you truly deserve the world and more. 🌟</p>
     </div>
+  </section>
 
-    <!-- Header -->
-    <header>
-        <div class="container header-container">
-            <div class="logo">
-                <i class="fas fa-seedling"></i>
-                <h1>GrowNet</h1>
-            </div>
-            <nav>
-                <ul>
-                    <li><a href="#home">Home</a></li>
-                    <li><a href="#products">Products</a></li>
-                    <li><a href="#pre-harvest">Pre-Harvest</a></li>
-                    <li><a href="#how-it-works">How It Works</a></li>
-                    <li><a href="#testimonials">Testimonials</a></li>
-                </ul>
-            </nav>
-            <div class="header-actions" id="headerActions">
-                <div class="search-box">
-                    <input type="text" placeholder="Search products...">
-                    <i class="fas fa-search"></i>
-                </div>
-                <div class="cart-icon" id="cartIcon">
-                    <i class="fas fa-shopping-cart"></i>
-                    <span class="cart-count">0</span>
-                </div>
-                <button class="cta-button" id="joinNowBtn">Join Now</button>
-            </div>
-            <button class="mobile-menu-btn" id="mobileMenuBtn">
-                <i class="fas fa-bars"></i>
-            </button>
-        </div>
-        <div class="mobile-nav" id="mobileNav">
-            <ul>
-                <li><a href="#home">Home</a></li>
-                <li><a href="#products">Products</a></li>
-                <li><a href="#pre-harvest">Pre-Harvest</a></li>
-                <li><a href="#how-it-works">How It Works</a></li>
-                <li><a href="#testimonials">Testimonials</a></li>
-                <li><button class="cta-button" style="width: 100%; margin-top: 10px;" id="mobileJoinBtn">Join Now</button></li>
-            </ul>
-        </div>
-    </header>
-
-    <!-- Hero Section -->
-    <section class="hero" id="home">
-        <div class="container">
-            <h2>Fresh Farm Products Direct to You</h2>
-            <p>GrowNet connects you directly with farmers for the freshest agricultural products at the best prices.</p>
-            <button class="cta-button" id="getStartedBtn">Shop Now</button>
-        </div>
-    </section>
-
-    <!-- Categories Section -->
-    <section class="categories">
-        <div class="container">
-            <div class="categories-grid">
-                <div class="category-card">
-                    <i class="fas fa-wheat-alt"></i>
-                    <h3>Grains</h3>
-                </div>
-                <div class="category-card">
-                    <i class="fas fa-apple-alt"></i>
-                    <h3>Fruits</h3>
-                </div>
-                <div class="category-card">
-                    <i class="fas fa-carrot"></i>
-                    <h3>Vegetables</h3>
-                </div>
-                <div class="category-card">
-                    <i class="fas fa-seedling"></i>
-                    <h3>Seeds</h3>
-                </div>
-                <div class="category-card">
-                    <i class="fas fa-wine-bottle"></i>
-                    <h3>Processed</h3>
-                </div>
-                <div class="category-card">
-                    <i class="fas fa-paw"></i>
-                    <h3>Livestock</h3>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Products Section -->
-    <section class="products" id="products">
-        <div class="container">
-            <div class="section-title">
-                <h2>Featured Products</h2>
-                <p>Fresh from our partner farms to your table</p>
-            </div>
-            <div class="products-grid" id="productsGrid">
-                <!-- Products will be loaded here by JavaScript -->
-            </div>
-        </div>
-    </section>
-
-    <!-- Pre-Harvest Section -->
-    <section class="pre-harvest" id="pre-harvest">
-        <div class="container">
-            <div class="section-title">
-                <h2>Pre-Harvest Listings</h2>
-                <p>Reserve farm-fresh products before they're harvested</p>
-            </div>
-            <div class="pre-harvest-grid" id="preHarvestGrid">
-                <!-- Pre-harvest products will be loaded here by JavaScript -->
-            </div>
-        </div>
-    </section>
-
-    <!-- How It Works Section -->
-    <section class="how-it-works" id="how-it-works">
-        <div class="container">
-            <div class="section-title">
-                <h2>How GrowNet Works</h2>
-                <p>Simple steps to connect farmers with buyers and reduce post-harvest losses</p>
-            </div>
-            <div class="steps">
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <h3>Register & List</h3>
-                    <p>Farmers register and list their crops with expected harvest dates and pricing.</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <h3>Buyer Discovery</h3>
-                    <p>Buyers discover available products and connect with farmers directly.</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <h3>Secure Payment</h3>
-                    <p>Transactions are processed securely through our payment gateway.</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">4</div>
-                    <h3>Delivery & Feedback</h3>
-                    <p>Products are delivered and both parties provide feedback on the experience.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Testimonials Section -->
-    <section class="testimonials" id="testimonials">
-        <div class="container">
-            <div class="section-title">
-                <h2>What Our Users Say</h2>
-                <p>Hear from farmers and buyers who have transformed their agricultural business with GrowNet</p>
-            </div>
-            <div class="testimonial-grid">
-                <div class="testimonial">
-                    <div class="testimonial-text">
-                        "GrowNet has completely changed how I sell my crops. I no longer worry about finding buyers after harvest. Listing early ensures I have buyers lined up!"
-                    </div>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">
-                            <i class="fas fa-user" style="font-size: 1.5rem; color: #666;"></i>
-                        </div>
-                        <div class="author-info">
-                            <h4>John Adebayo</h4>
-                            <p>Maize Farmer, Oyo State</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="testimonial">
-                    <div class="testimonial-text">
-                        "As a food processor, finding consistent, quality supply was always a challenge. With GrowNet, I can connect directly with farmers and plan my production better."
-                    </div>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">
-                            <i class="fas fa-user" style="font-size: 1.5rem; color: #666;"></i>
-                        </div>
-                        <div class="author-info">
-                            <h4>Chioma Okeke</h4>
-                            <p>Food Processing Company, Lagos</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="testimonial">
-                    <div class="testimonial-text">
-                        "The payment system is so secure and easy to use. I receive payments directly to my account without delays. This platform has reduced my post-harvest losses by 70%."
-                    </div>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">
-                            <i class="fas fa-user" style="font-size: 1.5rem; color: #666;"></i>
-                        </div>
-                        <div class="author-info">
-                            <h4>Musa Ibrahim</h4>
-                            <p>Rice Farmer, Kano State</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer>
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-column">
-                    <h3>GrowNet</h3>
-                    <p>Connecting farmers with buyers to reduce post-harvest losses and create a more efficient agricultural supply chain.</p>
-                    <div class="social-links">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                    </div>
-                </div>
-                <div class="footer-column">
-                    <h3>Quick Links</h3>
-                    <ul>
-                        <li><a href="#home">Home</a></li>
-                        <li><a href="#products">Products</a></li>
-                        <li><a href="#pre-harvest">Pre-Harvest</a></li>
-                        <li><a href="#how-it-works">How It Works</a></li>
-                        <li><a href="#testimonials">Testimonials</a></li>
-                    </ul>
-                </div>
-                <div class="footer-column">
-                    <h3>Resources</h3>
-                    <ul>
-                        <li><a href="#">Farmers Guide</a></li>
-                        <li><a href="#">Buyer Handbook</a></li>
-                        <li><a href="#">Market Trends</a></li>
-                        <li><a href="#">FAQs</a></li>
-                        <li><a href="#">Support</a></li>
-                    </ul>
-                </div>
-                <div class="footer-column">
-                    <h3>Contact Us</h3>
-                    <ul>
-                        <li><i class="fas fa-map-marker-alt"></i> 123 Agriculture Street, Farm City</li>
-                        <li><i class="fas fa-phone"></i> +234 801 234 5678</li>
-                        <li><i class="fas fa-envelope"></i> info@grownet.com</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="copyright">
-                <p>&copy; 2023 GrowNet. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Product Selection Modal -->
-    <div class="product-modal" id="productModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modalProductTitle">Select Options</h3>
-                <button class="close-modal" id="closeModal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div id="modalProductContent">
-                <!-- Product options will be loaded here -->
-            </div>
-        </div>
+  <section id="qualities">
+    <h2>Beautiful Qualities ✨</h2>
+    <div class="qualities-grid">
+      <div class="quality-item">💖 Kindness that touches everyone</div>
+      <div class="quality-item">✨ Energy that brightens every room</div>
+      <div class="quality-item">🌸 Creativity that inspires</div>
+      <div class="quality-item">🦋 Authenticity that stands out</div>
+      <div class="quality-item">📱 Passion for content creation</div>
+      <div class="quality-item">💪 Strength overcoming shyness</div>
+      <div class="quality-item">🎭 Talent waiting to shine</div>
     </div>
+    <div class="big-quote">💗 "You deserve every beautiful thing life has to offer" 💗</div>
+  </section>
 
-    <!-- Cart Sidebar -->
-    <div class="cart-sidebar" id="cartSidebar">
-        <div class="cart-header">
-            <h3>Your Cart</h3>
-            <button class="close-cart" id="closeCart">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="cart-items" id="cartItems">
-            <!-- Cart items will be loaded here -->
-        </div>
-        <div class="cart-total">
-            <span>Total:</span>
-            <span id="cartTotal">₦0</span>
-        </div>
-        <button class="checkout-btn" id="checkoutBtn">Proceed to Checkout</button>
+  <!-- SLIDESHOW - using TINY placeholder images first -->
+  <section id="memories">
+    <h2>Sweet Memories With sophia 💕</h2>
+    <div class="slideshow-container" id="slideshow">
+      <div class="slide-wrapper" id="slideWrapper">
+        <!-- Slides will be inserted by JavaScript -->
+      </div>
+      <div class="arrow prev" id="prevSlide">‹</div>
+      <div class="arrow next" id="nextSlide">›</div>
+      <div class="dot-container" id="dots"></div>
     </div>
-    
-    <!-- Payment Gateway -->
-    <div class="payment-gateway" id="paymentGateway">
-        <div class="payment-header">
-            <h3>Complete Your Payment</h3>
-            <button class="close-payment" id="closePayment">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="payment-details">
-            <div class="payment-summary">
-                <h4>Order Summary</h4>
-                <div class="payment-summary-item">
-                    <span>Items:</span>
-                    <span id="paymentItems">0</span>
-                </div>
-                <div class="payment-summary-item">
-                    <span>Total Amount:</span>
-                    <span id="paymentTotal">₦0</span>
-                </div>
-            </div>
-            
-            <div class="payment-form">
-                <div class="form-group">
-                    <label for="customerName">Full Name</label>
-                    <input type="text" id="customerName" placeholder="Enter your full name" required>
-                </div>
-                <div class="form-group">
-                    <label for="customerEmail">Email Address</label>
-                    <input type="email" id="customerEmail" placeholder="Enter your email" required>
-                </div>
-                <div class="form-group">
-                    <label for="customerPhone">Phone Number</label>
-                    <input type="tel" id="customerPhone" placeholder="Enter your phone number" required>
-                </div>
-                
-                <button class="pay-button" id="payButton">Pay with Interswitch</button>
-            </div>
-        </div>
-        <div class="payment-status" id="paymentStatus">
-            <!-- Payment status will be displayed here -->
-        </div>
-    </div>
-    
-    <div class="overlay" id="overlay"></div>
+  </section>
 
-    <!-- Interswitch Inline Checkout Script -->
-    <script src="https://newwebpay.interswitchng.com/inline-checkout.js"></script>
+  <section id="celebrate">
+    <h2>Celebrate you 💝</h2>
+    <div class="cards-grid">
+      <div class="float-card"><span>💝</span><br>Your Heart <br><small>kindness & authenticity</small></div>
+      <div class="float-card"><span>✨</span><br>Your Light <br><small>making life brighter</small></div>
+      <div class="float-card"><span>🌟</span><br>Your Dreams <br><small>content creator journey</small></div>
+      <div class="float-card"><span>🌱</span><br>Your Growth <br><small>overcoming & shining</small></div>
+    </div>
+  </section>
+
+  <section id="closing">
+    <div class="bounce-cake" id="cakeTrigger">🎂</div>
+    <h2 style="text-align:center">You truly deserve the world and more</h2>
+    <div style="font-size:2.5rem; text-align:center; font-family:'Dancing Script';">Happy Birthday sophia 🩷</div>
+    <p style="text-align:center; font-size:1.5rem;">May your day be as magical as you are ✨🌟</p>
+  </section>
+</div>
+
+<!-- Navigation -->
+<div class="bottom-nav" id="bottomNav">
+  <a class="nav-item" data-section="message"><span>💌</span>Message</a>
+  <a class="nav-item" data-section="qualities"><span>✨</span>Qualities</a>
+  <a class="nav-item" data-section="memories"><span>📸</span>Memories</a>
+  <a class="nav-item" data-section="celebrate"><span>🎉</span>Celebrate</a>
+  <a class="nav-item" data-section="closing"><span>🩷</span>Closing</a>
+</div>
+
+<div class="desktop-menu">
+  <select id="desktopNavSelect">
+    <option value="message">💌 Message</option>
+    <option value="qualities">✨ Qualities</option>
+    <option value="memories">📸 Memories</option>
+    <option value="celebrate">🎉 Celebrate</option>
+    <option value="closing">🩷 Closing</option>
+  </select>
+</div>
 
 <script>
-    // Firebase Configuration and Initialization
-    const firebaseConfig = {
-        apiKey: "AIzaSyAZ3LWTB1ZGAp1bQHKP5HJ57v5cQf-Ub50",
-        authDomain: "grownet-id.firebaseapp.com",
-        projectId: "grownet-id",
-        storageBucket: "grownet-id.firebasestorage.app",
-        messagingSenderId: "604886920916",
-        appId: "1:604886920916:web:222a5cb3a5154cfb83d541",
-        measurementId: "G-RMX5X6D3KW"
-    };
+  (function() {
+    // ===== LOADER DISAPPEARS IN 300ms =====
+    const loader = document.getElementById('loader');
+    setTimeout(() => {
+      loader.style.opacity = '0';
+      setTimeout(() => {
+        loader.style.display = 'none';
+      }, 300);
+    }, 300);
 
-    // Initialize Firebase
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    // Show notification function
-    function showNotification(message, type = 'success') {
-        const notification = document.createElement('div');
-        notification.textContent = message;
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: ${type === 'success' ? '#d4edda' : '#f8d7da'};
-            color: ${type === 'success' ? '#155724' : '#721c24'};
-            padding: 10px 20px;
-            border-radius: 5px;
-            z-index: 1001;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-        `;
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            document.body.removeChild(notification);
-        }, 3000);
-    }
-
-    // Auth Modal Functionality
-    document.addEventListener('DOMContentLoaded', function() {
-        // Get modal elements
-        const authModal = document.getElementById('authModal');
-        const closeAuthModal = document.getElementById('closeAuthModal');
-        const authTabs = document.querySelectorAll('.auth-tab');
-        const authFormSections = document.querySelectorAll('.auth-form-section');
-        const switchToRegister = document.getElementById('switchToRegister');
-        const switchToLogin = document.getElementById('switchToLogin');
-        const userTypeOptions = document.querySelectorAll('.user-type-option');
-        const loginBtn = document.getElementById('loginBtn');
-        const registerBtn = document.getElementById('registerBtn');
-        const joinNowBtn = document.getElementById('joinNowBtn');
-        const mobileJoinBtn = document.getElementById('mobileJoinBtn');
-        const overlay = document.getElementById('overlay');
-        
-        // Open modal when "Join Now" buttons are clicked
-        if (joinNowBtn) {
-            joinNowBtn.addEventListener('click', openAuthModal);
-        }
-        
-        if (mobileJoinBtn) {
-            mobileJoinBtn.addEventListener('click', openAuthModal);
-        }
-        
-        // Close modal
-        closeAuthModal.addEventListener('click', closeAuthModalFunc);
-        
-        // Tab switching
-        authTabs.forEach(tab => {
-            tab.addEventListener('click', function() {
-                const targetTab = this.getAttribute('data-tab');
-                
-                // Update active tab
-                authTabs.forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-                
-                // Show corresponding form
-                authFormSections.forEach(section => {
-                    section.classList.remove('active');
-                    if (section.id === `${targetTab}-form`) {
-                        section.classList.add('active');
-                    }
-                });
-            });
-        });
-        
-        // Switch between login and register
-        switchToRegister.addEventListener('click', function(e) {
-            e.preventDefault();
-            document.querySelector('.auth-tab[data-tab="register"]').click();
-        });
-        
-        switchToLogin.addEventListener('click', function(e) {
-            e.preventDefault();
-            document.querySelector('.auth-tab[data-tab="login"]').click();
-        });
-        
-        // User type selection
-        userTypeOptions.forEach(option => {
-            option.addEventListener('click', function() {
-                userTypeOptions.forEach(opt => opt.classList.remove('selected'));
-                this.classList.add('selected');
-                document.getElementById('userType').value = this.getAttribute('data-type');
-            });
-        });
-        
-        // Form submissions
-        loginBtn.addEventListener('click', handleLogin);
-        registerBtn.addEventListener('click', handleRegister);
-        
-        // Close modal when clicking on overlay
-        overlay.addEventListener('click', closeAuthModalFunc);
-        
-        // Check auth state on page load
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                // User is signed in
-                db.collection('users').doc(user.uid).get().then((doc) => {
-                    if (doc.exists) {
-                        updateAuthUI(user, doc.data());
-                    }
-                });
-            }
-        });
-    });
+    // ===== TINY PLACEHOLDER IMAGES (load instantly) =====
+    // These are super small Unsplash thumbnails - 50KB each max
+    const placeholderImages = [
+      'images/photo1.jpg',
+      'images/photo2.jpg',
+      'images/photo3.jpg',
+      'images/photo4.jpg',
+      'images/photo5.mp4',
+      'images/photo6.jpg',
+      'images/photo7.jpg',
+      'images/photo8.jpg'
+    ];
     
-    // Open auth modal
-    function openAuthModal() {
-        document.getElementById('authModal').classList.add('active');
-        document.getElementById('overlay').classList.add('active');
-    }
-    
-    // Close auth modal
-    function closeAuthModalFunc() {
-        document.getElementById('authModal').classList.remove('active');
-        document.getElementById('overlay').classList.remove('active');
-        clearFormErrors();
-    }
-    
-    // Clear form errors
-    function clearFormErrors() {
-        document.querySelectorAll('.error-message').forEach(error => {
-            error.style.display = 'none';
-        });
-    }
-    
-    // Validate email format
-    function isValidEmail(email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
-    }
-
-    // Handle login
-    async function handleLogin() {
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-        let isValid = true;
-        
-        // Clear previous errors
-        clearFormErrors();
-        
-        // Validate email
-        if (!email || !isValidEmail(email)) {
-            document.getElementById('loginEmailError').style.display = 'block';
-            isValid = false;
-        }
-        
-        // Validate password
-        if (!password) {
-            document.getElementById('loginPasswordError').style.display = 'block';
-            isValid = false;
-        }
-        
-        if (isValid) {
-            try {
-                const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                const user = userCredential.user;
-                
-                // Fetch user data from Firestore
-                const userDoc = await db.collection('users').doc(user.uid).get();
-                if (userDoc.exists) {
-                    const userData = userDoc.data();
-                    
-                    // Update UI
-                    updateAuthUI(user, userData);
-                    closeAuthModalFunc();
-                    showNotification('Login successful!');
-                } else {
-                    // Create user document if it doesn't exist
-                    await db.collection('users').doc(user.uid).set({
-                        uid: user.uid,
-                        email: user.email,
-                        name: user.email.split('@')[0],
-                        role: 'buyer',
-                        createdAt: new Date().toISOString(),
-                        verificationStatus: 'verified',
-                        phone: '',
-                        address: '',
-                        state: '',
-                        city: '',
-                        farmName: '',
-                        farmSize: 0,
-                        farmLocation: '',
-                        farmAddress: '',
-                        yearsExperience: 0,
-                        mainProducts: ''
-                    });
-                    
-                    updateAuthUI(user, { 
-                        name: user.email.split('@')[0], 
-                        role: 'buyer' 
-                    });
-                    closeAuthModalFunc();
-                    showNotification('Login successful! New profile created.');
-                }
-            } catch (error) {
-                console.error('Login error:', error);
-                showNotification(`Login failed: ${error.message}`, 'error');
-            }
-        }
-    }
-    
-    // Handle registration
-    async function handleRegister() {
-        const name = document.getElementById('registerName').value;
-        const email = document.getElementById('registerEmail').value;
-        const password = document.getElementById('registerPassword').value;
-        const confirmPassword = document.getElementById('registerConfirmPassword').value;
-        const userType = document.getElementById('userType').value;
-        let isValid = true;
-        
-        // Clear previous errors
-        clearFormErrors();
-        
-        // Validate name
-        if (!name) {
-            document.getElementById('registerNameError').style.display = 'block';
-            isValid = false;
-        }
-        
-        // Validate email
-        if (!email || !isValidEmail(email)) {
-            document.getElementById('registerEmailError').style.display = 'block';
-            isValid = false;
-        }
-        
-        // Validate password
-        if (!password || password.length < 6) {
-            document.getElementById('registerPasswordError').style.display = 'block';
-            isValid = false;
-        }
-        
-        // Validate password confirmation
-        if (password !== confirmPassword) {
-            document.getElementById('registerConfirmPasswordError').style.display = 'block';
-            isValid = false;
-        }
-        
-        // Validate user type
-        if (!userType) {
-            document.getElementById('userTypeError').style.display = 'block';
-            isValid = false;
-        }
-        
-        if (isValid) {
-            try {
-                // Create user with Firebase Authentication
-                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                const user = userCredential.user;
-                
-                // Create user document in Firestore
-                await db.collection('users').doc(user.uid).set({
-                    uid: user.uid,
-                    email: user.email,
-                    name: name,
-                    role: userType,
-                    createdAt: new Date().toISOString(),
-                    verificationStatus: userType === 'farmer' ? 'pending' : 'verified',
-                    phone: '',
-                    address: '',
-                    state: '',
-                    city: '',
-                    farmName: '',
-                    farmSize: 0,
-                    farmLocation: '',
-                    farmAddress: '',
-                    yearsExperience: 0,
-                    mainProducts: ''
-                });
-                
-                // Handle redirection based on user type
-                if (userType === 'farmer') {
-                    showNotification('Registration successful! Redirecting to farmer verification...');
-                    setTimeout(() => {
-                        window.location.href = 'farmer-verification.html';
-                    }, 1000);
-                } else {
-                    showNotification(`Registration successful! Welcome ${name} as a ${userType}.`);
-                    closeAuthModalFunc();
-                    updateAuthUI(user, { name, role: userType });
-                }
-            } catch (error) {
-                console.error('Registration error:', error);
-                showNotification(`Registration failed: ${error.message}`, 'error');
-            }
-        }
-    }
-    
-    // Function to update UI after authentication
-    function updateAuthUI(user, userData = null) {
-        const headerActions = document.getElementById('headerActions');
-        
-        if (user && userData) {
-            // User is logged in
-            const initials = userData.name ? userData.name.split(' ').map(n => n[0]).join('') : 'U';
-            
-            headerActions.innerHTML = `
-                <div class="search-box">
-                    <input type="text" placeholder="Search products...">
-                    <i class="fas fa-search"></i>
-                </div>
-                <div class="cart-icon" id="cartIcon">
-                    <i class="fas fa-shopping-cart"></i>
-                    <span class="cart-count">0</span>
-                </div>
-                <div class="user-profile">
-                    <div class="profile-avatar">${initials}</div>
-                    <div class="dropdown-menu">
-                        <ul>
-                            <li><a href="profile.html"><i class="fas fa-user"></i> My Profile</a></li>
-                            <li><a href="profile.html#orders"><i class="fas fa-shopping-cart"></i> My Orders</a></li>
-                            <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
-                            <li><a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                        </ul>
-                    </div>
-                </div>
-            `;
-            
-            // Add cart functionality
-            const cartIcon = document.getElementById('cartIcon');
-            if (cartIcon) {
-                cartIcon.addEventListener('click', function() {
-                    const cartSidebar = document.getElementById('cartSidebar');
-                    const overlay = document.getElementById('overlay');
-                    if (cartSidebar && overlay) {
-                        cartSidebar.classList.add('active');
-                        overlay.classList.add('active');
-                    }
-                });
-            }
-            
-            // Add logout functionality
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', async function(e) {
-                    e.preventDefault();
-                    try {
-                        await auth.signOut();
-                        location.reload();
-                    } catch (error) {
-                        console.error('Logout error:', error);
-                        showNotification('Logout failed. Please try again.', 'error');
-                    }
-                });
-            }
-        } else {
-            // User is not logged in - show default header actions
-            headerActions.innerHTML = `
-                <div class="search-box">
-                    <input type="text" placeholder="Search products...">
-                    <i class="fas fa-search"></i>
-                </div>
-                <div class="cart-icon" id="cartIcon">
-                    <i class="fas fa-shopping-cart"></i>
-                    <span class="cart-count">0</span>
-                </div>
-                <button class="cta-button" id="joinNowBtn">Join Now</button>
-            `;
-            
-            // Reattach event listeners
-            const joinNowBtn = document.getElementById('joinNowBtn');
-            if (joinNowBtn) {
-                joinNowBtn.addEventListener('click', openAuthModal);
-            }
-            
-            const cartIcon = document.getElementById('cartIcon');
-            if (cartIcon) {
-                cartIcon.addEventListener('click', function() {
-                    const cartSidebar = document.getElementById('cartSidebar');
-                    const overlay = document.getElementById('overlay');
-                    if (cartSidebar && overlay) {
-                        cartSidebar.classList.add('active');
-                        overlay.classList.add('active');
-                    }
-                });
-            }
-        }
-    }
-
-    // Product data with realistic prices and options
-    const products = [
-        {
-            id: 1,
-            name: "Fresh Maize",
-            price: 1500,
-            image: "https://foodieng.com/wp-content/uploads/2022/05/yellow-maiz.jpg",
-            description: "Freshly harvested maize, perfect for cooking or roasting.",
-            options: [
-                { unit: "50kg bag", price: 15000 },
-                { unit: "25kg bag", price: 8000 },
-                { unit: "10kg bag", price: 3500 },
-                { unit: "1kg", price: 400 }
-            ]
-        },
-        {
-            id: 2,
-            name: "Premium Rice",
-            price: 2500,
-            image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-            description: "High-quality locally grown rice, perfect for daily meals.",
-            options: [
-                { unit: "50kg bag", price: 25000 },
-                { unit: "25kg bag", price: 13000 },
-                { unit: "10kg bag", price: 5500 },
-                { unit: "1kg", price: 600 }
-            ]
-        },
-        {
-            id: 3,
-            name: "Fresh Tomatoes",
-            price: 800,
-            image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-            description: "Fresh, ripe tomatoes from local farms.",
-            options: [
-                { unit: "Basket (20kg)", price: 8000 },
-                { unit: "Half Basket (10kg)", price: 4500 },
-                { unit: "5kg", price: 2500 },
-                { unit: "1kg", price: 600 }
-            ]
-        },
-        {
-            id: 4,
-            name: "Beans",
-            price: 1200,
-            image: "https://www.pricepally.com/_next/image?url=https%3A%2F%2Fpp-new-node-medusa-prod-bucket.s3.us-east-1.amazonaws.com%2FBeans%20-%20Oloyin%20General-1725272084456.jpg&w=1920&q=75",
-            description: "Nutritious beans, rich in protein and fiber.",
-            options: [
-                { unit: "50kg bag", price: 12000 },
-                { unit: "25kg bag", price: 6500 },
-                { unit: "10kg bag", price: 2800 },
-                { unit: "1kg", price: 350 }
-            ]
-        },
-        {
-            id: 5,
-            name: "Cassava",
-            price: 500,
-            image: "https://greenhillsfarmstead.com/wp-content/uploads/2021/07/FACTS-1-1024x1024.png",
-            description: "Fresh cassava, perfect for making garri and other dishes.",
-            options: [
-                { unit: "100kg", price: 5000 },
-                { unit: "50kg", price: 2800 },
-                { unit: "25kg", price: 1500 },
-                { unit: "10kg", price: 700 }
-            ]
-        },
-        {
-            id: 6,
-            name: "Yam",
-            price: 1200,
-            image: "https://i0.wp.com/wangaraufoods.com/wp-content/uploads/2023/09/Benue-Yam.jpg?resize=600%2C600&ssl=1",
-            description: "Fresh yam tubers, great for boiling, frying or pounding.",
-            options: [
-                { unit: "100kg", price: 12000 },
-                { unit: "50kg", price: 6500 },
-                { unit: "25kg", price: 3500 },
-                { unit: "10kg", price: 1500 }
-            ]
-        },
-        {
-            id: 7,
-            name: "Goat",
-            price: 25000,
-            image: "https://www.greeneeds.com/blog/wp-content/uploads/2022/09/Goat-far-business.jpg",
-            description: "Healthy adult goat ready for sale.",
-            options: [
-                { unit: "Small (15-20kg)", price: 18000 },
-                { unit: "Medium (20-25kg)", price: 25000 },
-                { unit: "Large (25-30kg)", price: 32000 }
-            ]
-        },
-        {
-            id: 8,
-            name: "Chicken",
-            price: 2500,
-            image: "https://market.babsfarms-ltd.com/wp-content/uploads/2025/04/Live-Chicken-670x601.png",
-            description: "Fresh chicken from free-range farms.",
-            options: [
-                { unit: "1 Bird (1.5-2kg)", price: 2500 },
-                { unit: "5 Birds", price: 12000 },
-                { unit: "10 Birds", price: 23000 }
-            ]
-        },
-        {
-            id: 9,
-            name: "Turkey",
-            price: 15000,
-            image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Male_wild_turkey_%28Meleagris_gallopavo%29_strutting.jpg/250px-Male_wild_turkey_%28Meleagris_gallopavo%29_strutting.jpg",
-            description: "Premium turkey for special occasions.",
-            options: [
-                { unit: "Small (5-7kg)", price: 15000 },
-                { unit: "Medium (7-10kg)", price: 22000 },
-                { unit: "Large (10-12kg)", price: 28000 }
-            ]
-        },
-        {
-            id: 10,
-            name: "Eggs",
-            price: 10,
-            image: "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-            description: "Fresh farm eggs from free-range chickens.",
-            options: [
-                { unit: "Crate (30 eggs)", price: 10 },
-                { unit: "Half Crate (15 eggs)", price: 5 },
-                { unit: "5 eggs", price: 2 }
-            ]
-        }
+    const captions = [
+      'Beautiful soul ✨',
+      'Your smile brightens days 🌟',
+      'Creative heart 🎨',
+      'Content creator dreams 📱',
+      'Shy strength 💪',
+      'Kindness shines 💝',
+      'Talented you 🎭',
+      'Future superstar 🌠'
     ];
 
-    // Pre-harvest products with realistic prices
-    const preHarvestProducts = [
-        {
-            id: 101,
-            name: "Pre-Harvest Maize",
-            price: 1200,
-            image: "https://foodieng.com/wp-content/uploads/2022/05/yellow-maiz.jpg",
-            description: "Reserve your maize harvest now. Expected harvest in 3 weeks.",
-            harvestDate: "2025-12-15",
-            options: [
-                { unit: "50kg bag", price: 12000 },
-                { unit: "25kg bag", price: 6500 },
-                { unit: "10kg bag", price: 2800 }
-            ]
-        },
-        {
-            id: 102,
-            name: "Pre-Harvest Rice",
-            price: 2000,
-            image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-            description: "Reserve premium rice. Expected harvest in 4 weeks.",
-            harvestDate: "2025-12-20",
-            options: [
-                { unit: "50kg bag", price: 20000 },
-                { unit: "25kg bag", price: 10500 },
-                { unit: "10kg bag", price: 4500 }
-            ]
-        },
-        {
-            id: 103,
-            name: "Pre-Harvest Tomatoes",
-            price: 600,
-            image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80",
-            description: "Reserve fresh tomatoes. Expected harvest in 2 weeks.",
-            harvestDate: "2025-12-10",
-            options: [
-                { unit: "Basket (20kg)", price: 6000 },
-                { unit: "Half Basket (10kg)", price: 3500 },
-                { unit: "5kg", price: 2000 }
-            ]
-        },
-        {
-            id: 104,
-            name: "Goat (Livestock)",
-            price: 25000,
-            image: "https://www.greeneeds.com/blog/wp-content/uploads/2022/09/Goat-far-business.jpg",
-            description: "Healthy adult goat ready for sale.",
-            harvestDate: "Available Now",
-            options: [
-                { unit: "Small (15-20kg)", price: 18000 },
-                { unit: "Medium (20-25kg)", price: 25000 },
-                { unit: "Large (25-30kg)", price: 32000 }
-            ]
-        },
-        {
-            id: 105,
-            name: "Chicken (Livestock)",
-            price: 2500,
-            image: "https://market.babsfarms-ltd.com/wp-content/uploads/2025/04/Live-Chicken-670x601.png",
-            description: "Fresh chicken from free-range farms.",
-            harvestDate: "Available Now",
-            options: [
-                { unit: "1 Bird (1.5-2kg)", price: 2500 },
-                { unit: "5 Birds", price: 12000 },
-                { unit: "10 Birds", price: 23000 }
-            ]
-        },
-        {
-            id: 106,
-            name: "Turkey (Livestock)",
-            price: 15000,
-            image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Male_wild_turkey_%28Meleagris_gallopavo%29_strutting.jpg/250px-Male_wild_turkey_%28Meleagris_gallopavo%29_strutting.jpg",
-            description: "Premium turkey for special occasions.",
-            harvestDate: "Available Now",
-            options: [
-                { unit: "Small (5-7kg)", price: 15000 },
-                { unit: "Medium (7-10kg)", price: 22000 },
-                { unit: "Large (10-12kg)", price: 28000 }
-            ]
-        }
-    ];
+    // Confetti function
+    function createConfetti(amount=20) {
+      for(let i=0;i<amount;i++) {
+        let conf = document.createElement('div');
+        conf.style.position = 'fixed'; 
+        conf.style.zIndex = '9999';
+        conf.style.left = Math.random()*100 + '%'; 
+        conf.style.top = '0';
+        conf.style.fontSize = (20+Math.random()*30)+'px';
+        conf.style.pointerEvents = 'none';
+        conf.innerHTML = ['✨','💖','🌸','🎀','🍓','🩷','🌟','🎉'][Math.floor(Math.random()*6)];
+        document.body.appendChild(conf);
+        let anim = conf.animate([
+          { transform: 'translateY(0) rotate(0)', opacity: 1 },
+          { transform: `translateY(${window.innerHeight+100}px) rotate(${Math.random()*360}deg)`, opacity: 0 }
+        ], { duration: 1500+Math.random()*1000, easing: 'ease-out' });
+        anim.onfinish = () => conf.remove();
+      }
+    }
 
-    // Cart functionality
-    let cart = [];
-    let currentProduct = null;
-    let cartIcon = document.getElementById('cartIcon');
-    const cartSidebar = document.getElementById('cartSidebar');
-    const closeCart = document.getElementById('closeCart');
-    const overlay = document.getElementById('overlay');
-    const cartItems = document.getElementById('cartItems');
-    const cartTotal = document.getElementById('cartTotal');
-    const cartCount = document.querySelector('.cart-count');
-    const checkoutBtn = document.getElementById('checkoutBtn');
-    const productsGrid = document.getElementById('productsGrid');
-    const preHarvestGrid = document.getElementById('preHarvestGrid');
-    const productModal = document.getElementById('productModal');
-    const closeModal = document.getElementById('closeModal');
-    const modalProductTitle = document.getElementById('modalProductTitle');
-    const modalProductContent = document.getElementById('modalProductContent');
+    // Envelope opening
+    let opened = false;
+    const envScreen = document.getElementById('envelopeScreen');
+    const mainCont = document.getElementById('mainContent');
+    const envImg = document.getElementById('envelopeImg');
+    const preview = document.getElementById('previewMsg');
     
-    // Payment gateway elements
-    const paymentGateway = document.getElementById('paymentGateway');
-    const closePayment = document.getElementById('closePayment');
-    const paymentItems = document.getElementById('paymentItems');
-    const paymentTotal = document.getElementById('paymentTotal');
-    const payButton = document.getElementById('payButton');
-    const paymentStatus = document.getElementById('paymentStatus');
-    const customerName = document.getElementById('customerName');
-    const customerEmail = document.getElementById('customerEmail');
-    const customerPhone = document.getElementById('customerPhone');
-
-    // Initialize the page
-    document.addEventListener('DOMContentLoaded', function() {
-        // Mobile menu functionality
-        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-        const mobileNav = document.getElementById('mobileNav');
-        
-        mobileMenuBtn.addEventListener('click', function() {
-            mobileNav.classList.toggle('active');
-        });
-        
-        // Close mobile menu when clicking on a link
-        const mobileLinks = mobileNav.querySelectorAll('a');
-        mobileLinks.forEach(link => {
-            link.addEventListener('click', function() {
-                mobileNav.classList.remove('active');
-            });
-        });
-        
-        // Navigation buttons
-        document.getElementById('joinNowBtn')?.addEventListener('click', function() {
-            document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
-        });
-        
-        document.getElementById('mobileJoinBtn')?.addEventListener('click', function() {
-            document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
-            mobileNav.classList.remove('active');
-        });
-        
-        document.getElementById('getStartedBtn')?.addEventListener('click', function() {
-            document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
-        });
-        
-        // Cart functionality - check if element exists
-        if (cartIcon) {
-            cartIcon.addEventListener('click', function() {
-                cartSidebar.classList.add('active');
-                overlay.classList.add('active');
-            });
-        }
-        
-        if (closeCart) {
-            closeCart.addEventListener('click', function() {
-                cartSidebar.classList.remove('active');
-                overlay.classList.remove('active');
-            });
-        }
-        
-        if (overlay) {
-            overlay.addEventListener('click', function() {
-                cartSidebar.classList.remove('active');
-                overlay.classList.remove('active');
-                if (paymentGateway) paymentGateway.classList.remove('active');
-                if (productModal) productModal.classList.remove('active');
-            });
-        }
-        
-        if (checkoutBtn) {
-            checkoutBtn.addEventListener('click', function() {
-                if (cart.length === 0) {
-                    alert('Your cart is empty!');
-                    return;
-                }
-                
-                // Show payment gateway
-                showPaymentGateway();
-            });
-        }
-        
-        // Payment gateway functionality
-        if (closePayment) {
-            closePayment.addEventListener('click', function() {
-                paymentGateway.classList.remove('active');
-                overlay.classList.remove('active');
-            });
-        }
-        
-        if (payButton) {
-            payButton.addEventListener('click', function() {
-                processPayment();
-            });
-        }
-        
-        // Modal functionality
-        if (closeModal) {
-            closeModal.addEventListener('click', function() {
-                productModal.classList.remove('active');
-                overlay.classList.remove('active');
-            });
-        }
-        
-        // Load products
-        loadProducts();
-        loadPreHarvestProducts();
+    envImg.addEventListener('click', () => {
+      if(opened) return;
+      opened = true;
+      envImg.style.transform = 'scale(1.1) rotate(2deg)';
+      setTimeout(()=>{ envImg.style.transform = 'scale(0.9)'; },150);
+      setTimeout(()=>{ envImg.style.opacity = '0.5'; preview.style.opacity = '1'; },300);
+      setTimeout(()=>{
+        envScreen.style.display = 'none';
+        mainCont.style.display = 'block';
+        window.scrollTo(0,0);
+        createConfetti(30);
+        startSlideshow();
+      }, 1500);
     });
 
-    // Load products into the grid
-    function loadProducts() {
-        if (!productsGrid) return;
-        
-        productsGrid.innerHTML = '';
-        
-        products.forEach(product => {
-            const productCard = document.createElement('div');
-            productCard.className = 'product-card';
-            productCard.innerHTML = `
-                <img src="${product.image}" alt="${product.name}" class="product-image">
-                <div class="product-info">
-                    <h3 class="product-title">${product.name}</h3>
-                    <p class="product-description">${product.description}</p>
-                    <div class="product-price">From ₦${product.price}</div>
-                    <div class="product-actions">
-                        <button class="add-to-cart" data-id="${product.id}">Add to Cart</button>
-                        <button class="buy-now" data-id="${product.id}">Buy Now</button>
-                    </div>
-                </div>
-            `;
-            
-            productsGrid.appendChild(productCard);
+    // Slideshow
+    let currentSlide = 0;
+    let slideInterval;
+    const wrapper = document.getElementById('slideWrapper');
+    const dotsDiv = document.getElementById('dots');
+    
+    function renderSlides() {
+      let html = '';
+      for(let i = 0; i < 8; i++) {
+        html += `<div class="slide ${i === 0 ? 'active' : ''}" data-index="${i}">
+          <img class="slide-img" src="${placeholderImages[i]}" 
+               loading="${i < 2 ? 'eager' : 'lazy'}" 
+               alt="memory ${i+1}">
+          <div class="caption">${captions[i]}</div>
+        </div>`;
+      }
+      wrapper.innerHTML = html;
+      
+      let dotsHtml = '';
+      for(let i = 0; i < 8; i++) dotsHtml += `<span class="dot ${i === 0 ? 'active' : ''}" data-slide="${i}"></span>`;
+      dotsDiv.innerHTML = dotsHtml;
+      attachSlideEvents();
+    }
+    
+    function attachSlideEvents() {
+      document.querySelectorAll('.dot').forEach(d => {
+        d.addEventListener('click', (e) => {
+          let idx = e.target.getAttribute('data-slide');
+          if(idx !== null) goToSlide(parseInt(idx));
+          createConfetti(10);
         });
-        
-        // Add event listeners to buttons
-        setTimeout(() => {
-            document.querySelectorAll('.add-to-cart').forEach(button => {
-                button.addEventListener('click', function() {
-                    const productId = parseInt(this.getAttribute('data-id'));
-                    showProductOptions(productId, false);
-                });
-            });
-            
-            document.querySelectorAll('.buy-now').forEach(button => {
-                button.addEventListener('click', function() {
-                    const productId = parseInt(this.getAttribute('data-id'));
-                    showProductOptions(productId, true);
-                });
-            });
-        }, 100);
+      });
     }
-
-    // Load pre-harvest products
-    function loadPreHarvestProducts() {
-        if (!preHarvestGrid) return;
-        
-        preHarvestGrid.innerHTML = '';
-        
-        preHarvestProducts.forEach(product => {
-            const preHarvestCard = document.createElement('div');
-            preHarvestCard.className = 'pre-harvest-card';
-            preHarvestCard.innerHTML = `
-                <div class="pre-harvest-header">
-                    <span class="pre-harvest-badge">Pre-Harvest</span>
-                    <span class="harvest-date">Harvest: ${product.harvestDate}</span>
-                </div>
-                <img src="${product.image}" alt="${product.name}" class="product-image">
-                <div class="pre-harvest-info">
-                    <h3 class="product-title">${product.name}</h3>
-                    <p class="product-description">${product.description}</p>
-                    <div class="product-price">From ₦${product.price}</div>
-                    <div class="quantity-options">
-                        ${product.options.map(option => `
-                            <div class="quantity-option">
-                                <span>${option.unit}</span>
-                                <span class="option-price">₦${option.price}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div class="product-actions">
-                        <button class="add-to-cart" data-id="${product.id}" data-preharvest="true">Reserve Now</button>
-                    </div>
-                </div>
-            `;
-            
-            preHarvestGrid.appendChild(preHarvestCard);
-        });
-        
-        // Add event listeners to pre-harvest buttons
-        setTimeout(() => {
-            document.querySelectorAll('.pre-harvest-card .add-to-cart').forEach(button => {
-                button.addEventListener('click', function() {
-                    const productId = parseInt(this.getAttribute('data-id'));
-                    const isPreHarvest = this.getAttribute('data-preharvest') === 'true';
-                    showProductOptions(productId, false, isPreHarvest);
-                });
-            });
-        }, 100);
+    
+    function goToSlide(n) {
+      const slides = document.querySelectorAll('.slide');
+      if(!slides.length) return;
+      slides.forEach(s => s.classList.remove('active'));
+      slides[n]?.classList.add('active');
+      document.querySelectorAll('.dot').forEach((d, i) => {
+        d.classList.toggle('active', i === n);
+      });
+      currentSlide = n;
     }
-
-    // Show product options modal
-    function showProductOptions(productId, buyNow = false, isPreHarvest = false) {
-        if (!productModal) return;
-        
-        const productList = isPreHarvest ? preHarvestProducts : products;
-        const product = productList.find(p => p.id === productId);
-        
-        if (!product) return;
-        
-        currentProduct = {
-            ...product,
-            isPreHarvest
-        };
-        
-        modalProductTitle.textContent = `Select ${product.name} Options`;
-        
-        modalProductContent.innerHTML = `
-            <img src="${product.image}" alt="${product.name}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 20px;">
-            <p>${product.description}</p>
-            ${isPreHarvest ? `<p><strong>Harvest Date:</strong> ${product.harvestDate}</p>` : ''}
-            
-            <div class="quantity-selector">
-                <h4>Select Quantity/Size:</h4>
-                ${product.options.map((option, index) => `
-                    <div class="quantity-option-select ${index === 0 ? 'selected' : ''}" data-price="${option.price}" data-unit="${option.unit}">
-                        <span>${option.unit}</span>
-                        <span class="option-price">₦${option.price}</span>
-                    </div>
-                `).join('')}
-            </div>
-            
-            <div class="quantity-input">
-                <label>Quantity:</label>
-                <input type="number" id="productQuantity" value="1" min="1">
-            </div>
-            
-            <div style="margin-top: 20px; font-weight: 600; font-size: 1.2rem;">
-                Total: ₦<span id="modalTotalPrice">${product.options[0].price}</span>
-            </div>
-            
-            <button class="cta-button" style="width: 100%; margin-top: 20px;" id="addToCartModal">
-                ${buyNow ? 'Buy Now' : (isPreHarvest ? 'Reserve Now' : 'Add to Cart')}
-            </button>
-        `;
-        
-        // Add event listeners to quantity options
-        setTimeout(() => {
-            document.querySelectorAll('.quantity-option-select').forEach(option => {
-                option.addEventListener('click', function() {
-                    document.querySelectorAll('.quantity-option-select').forEach(opt => {
-                        opt.classList.remove('selected');
-                    });
-                    this.classList.add('selected');
-                    updateModalTotalPrice();
-                });
-            });
-            
-            // Add event listener to quantity input
-            const quantityInput = document.getElementById('productQuantity');
-            if (quantityInput) {
-                quantityInput.addEventListener('input', updateModalTotalPrice);
-            }
-            
-            // Add event listener to add to cart button
-            const addToCartBtn = document.getElementById('addToCartModal');
-            if (addToCartBtn) {
-                addToCartBtn.addEventListener('click', function() {
-                    addToCartFromModal(buyNow);
-                });
-            }
-        }, 100);
-        
-        // Show modal
-        productModal.classList.add('active');
-        overlay.classList.add('active');
+    
+    function nextSlide() { goToSlide((currentSlide + 1) % 8); createConfetti(5); }
+    function prevSlide() { goToSlide((currentSlide - 1 + 8) % 8); createConfetti(5); }
+    
+    function startSlideshow() {
+      if(slideInterval) clearInterval(slideInterval);
+      slideInterval = setInterval(() => { nextSlide(); }, 3000);
     }
+    
+    document.getElementById('nextSlide').addEventListener('click', nextSlide);
+    document.getElementById('prevSlide').addEventListener('click', prevSlide);
+    renderSlides();
 
-    // Update modal total price
-    function updateModalTotalPrice() {
-        const selectedOption = document.querySelector('.quantity-option-select.selected');
-        const quantityInput = document.getElementById('productQuantity');
-        
-        if (!selectedOption || !quantityInput) return;
-        
-        const quantity = parseInt(quantityInput.value) || 1;
-        const price = parseInt(selectedOption.getAttribute('data-price'));
-        const total = price * quantity;
-        
-        const modalTotalPrice = document.getElementById('modalTotalPrice');
-        if (modalTotalPrice) {
-            modalTotalPrice.textContent = total;
-        }
+    // Touch swipe
+    let touchStartX = 0;
+    document.querySelector('.slideshow-container')?.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    });
+    document.querySelector('.slideshow-container')?.addEventListener('touchend', (e) => {
+      if(!touchStartX) return;
+      let diff = e.changedTouches[0].screenX - touchStartX;
+      if(Math.abs(diff) > 40) { diff > 0 ? prevSlide() : nextSlide(); }
+      touchStartX = 0;
+    });
+
+    // Sparkle on click
+    document.addEventListener('click', (e) => {
+      const target = e.target;
+      if(target.closest('.nav-item') || target.closest('.dot') || target.closest('.arrow') || target.closest('.bounce-cake') || target.closest('.float-card')) {
+        createConfetti(15);
+      }
+    });
+    document.getElementById('cakeTrigger').addEventListener('click', ()=>createConfetti(30));
+
+    // Navigation
+    const sections = ['message','qualities','memories','celebrate','closing'];
+    function setActive(navId) {
+      document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+      document.querySelector(`.nav-item[data-section="${navId}"]`)?.classList.add('active');
+      document.getElementById(navId)?.scrollIntoView({behavior:'smooth'});
     }
+    
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        let sec = item.getAttribute('data-section');
+        setActive(sec);
+      });
+    });
+    
+    const desktopSelect = document.getElementById('desktopNavSelect');
+    desktopSelect?.addEventListener('change', (e) => setActive(e.target.value));
 
-    // Add product to cart from modal
-    function addToCartFromModal(buyNow = false) {
-        if (!currentProduct) return;
-        
-        const selectedOption = document.querySelector('.quantity-option-select.selected');
-        const quantityInput = document.getElementById('productQuantity');
-        
-        if (!selectedOption || !quantityInput) return;
-        
-        const quantity = parseInt(quantityInput.value) || 1;
-        const unit = selectedOption.getAttribute('data-unit');
-        const price = parseInt(selectedOption.getAttribute('data-price'));
-        const total = price * quantity;
-        
-        // Check if product with same options is already in cart
-        const existingItemIndex = cart.findIndex(item => 
-            item.id === currentProduct.id && 
-            item.unit === unit &&
-            item.isPreHarvest === currentProduct.isPreHarvest
-        );
-        
-        if (existingItemIndex !== -1) {
-            // Update quantity of existing item
-            cart[existingItemIndex].quantity += quantity;
-            cart[existingItemIndex].total = cart[existingItemIndex].price * cart[existingItemIndex].quantity;
-        } else {
-            // Add new item to cart
-            cart.push({
-                id: currentProduct.id,
-                name: currentProduct.name,
-                price: price,
-                total: total,
-                image: currentProduct.image,
-                quantity: quantity,
-                unit: unit,
-                isPreHarvest: currentProduct.isPreHarvest
-            });
-        }
-        
-        updateCartDisplay();
-        
-        // Show confirmation
-        showNotification(`${currentProduct.name} added to cart!`);
-        
-        // Close modal
-        if (productModal) {
-            productModal.classList.remove('active');
-        }
-        if (overlay) {
-            overlay.classList.remove('active');
-        }
-        
-        // If buy now, open cart
-        if (buyNow && cartSidebar) {
-            cartSidebar.classList.add('active');
-            overlay.classList.add('active');
-        }
+    // Scroll progress
+    window.addEventListener('scroll', ()=>{
+      let scrollY = window.scrollY;
+      let docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      let progress = (scrollY / docHeight)*100;
+      document.getElementById('progressBar').style.width = progress + '%';
+    });
+
+    // Audio
+    const audio = document.getElementById('bgSong');
+    audio.volume = 0.3;
+    const mute = document.getElementById('muteToggle');
+    let isMuted = false;
+    
+    mute.addEventListener('click', ()=>{
+      isMuted = !isMuted;
+      audio.muted = isMuted;
+      mute.innerHTML = isMuted ? '🔇' : '🔊';
+      createConfetti(10);
+    });
+    
+    // Try to play but don't wait for it
+    audio.play().catch(() => {
+      mute.innerHTML = '🔇';
+      console.log('Audio autoplay blocked');
+    });
+
+    // Floating decor
+    const decor = document.getElementById('floatingDecor');
+    for(let i=0;i<8;i++) {
+      let sp = document.createElement('span');
+      sp.innerHTML = ['💖','🌟','🎀','🍓','🩷','✨','🌸'][Math.floor(Math.random()*7)];
+      sp.style.left = Math.random()*100 + '%';
+      sp.style.top = Math.random()*100 + '%';
+      sp.style.animationDelay = Math.random()*5 + 's';
+      decor.appendChild(sp);
     }
-
-    // Update cart display
-    function updateCartDisplay() {
-        // Update cart count
-        const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
-        if (cartCount) {
-            cartCount.textContent = totalItems;
-        }
-        
-        // Update cart items
-        if (cartItems) {
-            cartItems.innerHTML = '';
-            
-            if (cart.length === 0) {
-                cartItems.innerHTML = '<p>Your cart is empty</p>';
-            } else {
-                cart.forEach(item => {
-                    const cartItem = document.createElement('div');
-                    cartItem.className = 'cart-item';
-                    cartItem.innerHTML = `
-                        <img src="${item.image}" alt="${item.name}" class="cart-item-image">
-                        <div class="cart-item-details">
-                            <h4 class="cart-item-title">${item.name} ${item.isPreHarvest ? '(Pre-Harvest)' : ''}</h4>
-                            <div class="cart-item-variant">${item.unit}</div>
-                            <div class="cart-item-price">₦${item.price} x ${item.quantity}</div>
-                            <div class="cart-item-quantity">
-                                <button class="quantity-btn" data-id="${item.id}" data-unit="${item.unit}" data-action="decrease">-</button>
-                                <span>${item.quantity}</span>
-                                <button class="quantity-btn" data-id="${item.id}" data-unit="${item.unit}" data-action="increase">+</button>
-                            </div>
-                        </div>
-                    `;
-                    cartItems.appendChild(cartItem);
-                });
-                
-                // Add event listeners to quantity buttons
-                setTimeout(() => {
-                    document.querySelectorAll('.quantity-btn').forEach(button => {
-                        button.addEventListener('click', function() {
-                            const productId = parseInt(this.getAttribute('data-id'));
-                            const unit = this.getAttribute('data-unit');
-                            const action = this.getAttribute('data-action');
-                            updateQuantity(productId, unit, action);
-                        });
-                    });
-                }, 100);
-            }
-        }
-        
-        // Update total
-        if (cartTotal) {
-            cartTotal.textContent = '₦' + calculateCartTotal();
-        }
-    }
-
-    // Update item quantity in cart
-    function updateQuantity(productId, unit, action) {
-        const itemIndex = cart.findIndex(item => item.id === productId && item.unit === unit);
-        
-        if (itemIndex === -1) return;
-        
-        if (action === 'increase') {
-            cart[itemIndex].quantity += 1;
-            cart[itemIndex].total = cart[itemIndex].price * cart[itemIndex].quantity;
-        } else if (action === 'decrease') {
-            cart[itemIndex].quantity -= 1;
-            cart[itemIndex].total = cart[itemIndex].price * cart[itemIndex].quantity;
-            
-            if (cart[itemIndex].quantity <= 0) {
-                cart.splice(itemIndex, 1);
-            }
-        }
-        
-        updateCartDisplay();
-    }
-
-    // Calculate cart total
-    function calculateCartTotal() {
-        return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-    }
-
-    // Show payment gateway
-    function showPaymentGateway() {
-        if (!paymentGateway) return;
-        
-        // Update payment summary
-        const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
-        const totalAmount = calculateCartTotal();
-        
-        if (paymentItems) paymentItems.textContent = totalItems;
-        if (paymentTotal) paymentTotal.textContent = '₦' + totalAmount;
-        
-        // Show payment gateway
-        paymentGateway.classList.add('active');
-        overlay.classList.add('active');
-        
-        // Reset form
-        if (customerName) customerName.value = '';
-        if (customerEmail) customerEmail.value = '';
-        if (customerPhone) customerPhone.value = '';
-        if (paymentStatus) paymentStatus.classList.remove('active');
-    }
-
-    // Process payment using Interswitch Inline Checkout
-    function processPayment() {
-        if (!paymentGateway) return;
-        
-        // Validate form
-        if (!customerName || !customerName.value || !customerEmail || !customerEmail.value || !customerPhone || !customerPhone.value) {
-            alert('Please fill in all required fields');
-            return;
-        }
-        // Validate email format
-        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailPattern.test(customerEmail.value)) {
-            alert('Please enter a valid email address');
-            return;
-        }
-        
-        const totalAmount = calculateCartTotal();
-        const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
-        
-        // Generate a unique transaction reference
-        const txnRef = 'GrowNet_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-        
-        console.log('Payment details:', {
-            amount: totalAmount,
-            txnRef: txnRef,
-            merchant_code: "MX153376",
-            pay_item_id: "5826784"
-        });
-        
-        // Show processing message
-        if (paymentStatus) {
-            paymentStatus.innerHTML = `
-                <div class="payment-success">
-                    <i class="fas fa-spinner fa-spin"></i> Initializing payment...
-                </div>
-            `;
-            paymentStatus.classList.add('active');
-        }
-        
-        // Interswitch payment configuration
-        const paymentRequest = {
-            merchant_code: "MX153376",
-            pay_item_id: "5826784",
-            pay_item_name: "GrowNet Agricultural Products",
-            txn_ref: txnRef,
-            amount: totalAmount * 100,
-            currency: 566,
-            cust_name: customerName.value,
-            cust_email: customerEmail.value,
-            cust_id: customerPhone.value,
-            cust_mobile_no: customerPhone.value,
-            site_redirect_url: window.location.href,
-            mode: 'TEST', // Changed to TEST for development
-            onComplete: paymentCallback
-        };
-        
-        console.log('Calling webpayCheckout with:', paymentRequest);
-        
-        // Check if Interswitch is loaded
-        if (typeof window.webpayCheckout === 'undefined') {
-            console.error('Interswitch webpayCheckout is not defined');
-            if (paymentStatus) {
-                paymentStatus.innerHTML = `
-                    <div class="payment-error">
-                        <i class="fas fa-times-circle"></i> Payment System Error
-                    </div>
-                    <p>Payment gateway not loaded. Please refresh the page.</p>
-                    <p>If the problem persists, contact support.</p>
-                `;
-                paymentStatus.classList.add('active');
-            }
-            return;
-        }
-        
-        try {
-            // Initiate Interswitch inline checkout
-            window.webpayCheckout(paymentRequest);
-        } catch (error) {
-            console.error('Payment initialization error:', error);
-            if (paymentStatus) {
-                paymentStatus.innerHTML = `
-                    <div class="payment-error">
-                        <i class="fas fa-times-circle"></i> Payment Error
-                    </div>
-                    <p>Error: ${error.message}</p>
-                    <button class="cta-button" style="margin-top: 15px;" id="tryAgain">Try Again</button>
-                `;
-                
-                // Add event listener to try again button
-                setTimeout(() => {
-                    const tryAgainBtn = document.getElementById('tryAgain');
-                    if (tryAgainBtn) {
-                        tryAgainBtn.addEventListener('click', function() {
-                            paymentStatus.classList.remove('active');
-                        });
-                    }
-                }, 100);
-            }
-        }
-    }
-
-    // Payment callback function
-    function paymentCallback(response) {
-        console.log('Payment response:', response);
-        
-        if (response && response.ResponseCode === "00") {
-            // Payment successful
-            if (paymentStatus) {
-                paymentStatus.innerHTML = `
-                    <div class="payment-success">
-                        <i class="fas fa-check-circle"></i> Payment Successful!
-                    </div>
-                    <p>Transaction Reference: ${response.PaymentReference}</p>
-                    <p>Amount Paid: ₦${response.Amount / 100}</p>
-                    <p>Thank you for your purchase. Your order will be processed shortly.</p>
-                    <button class="cta-button" style="margin-top: 15px;" id="continueShopping">Continue Shopping</button>
-                `;
-            }
-            
-            // Save order to Firestore if user is logged in
-            const user = auth.currentUser;
-            if (user) {
-                saveOrderToFirestore(user.uid);
-            }
-            
-            // Clear cart after successful payment
-            cart = [];
-            updateCartDisplay();
-            
-            // Add event listener to continue shopping button
-            setTimeout(() => {
-                const continueBtn = document.getElementById('continueShopping');
-                if (continueBtn) {
-                    continueBtn.addEventListener('click', function() {
-                        paymentGateway.classList.remove('active');
-                        overlay.classList.remove('active');
-                    });
-                }
-            }, 100);
-        } else {
-            // Payment failed
-            if (paymentStatus) {
-                paymentStatus.innerHTML = `
-                    <div class="payment-error">
-                        <i class="fas fa-times-circle"></i> Payment Failed
-                    </div>
-                    <p>${response.ResponseDescription || 'An error occurred during payment processing.'}</p>
-                    <p>Please try again or contact support if the problem persists.</p>
-                    <button class="cta-button" style="margin-top: 15px;" id="tryAgain">Try Again</button>
-                `;
-                
-                // Add event listener to try again button
-                setTimeout(() => {
-                    const tryAgainBtn = document.getElementById('tryAgain');
-                    if (tryAgainBtn) {
-                        tryAgainBtn.addEventListener('click', function() {
-                            paymentStatus.classList.remove('active');
-                        });
-                    }
-                }, 100);
-            }
-        }
-    }
-
-    // Save order to Firestore
-    async function saveOrderToFirestore(userId) {
-        try {
-            const orderData = {
-                userId: userId,
-                items: cart,
-                totalAmount: calculateCartTotal(),
-                customerName: customerName ? customerName.value : '',
-                customerEmail: customerEmail ? customerEmail.value : '',
-                customerPhone: customerPhone ? customerPhone.value : '',
-                status: 'pending',
-                createdAt: new Date().toISOString(),
-                paymentStatus: 'completed'
-            };
-            
-            await db.collection('orders').add(orderData);
-            console.log('Order saved to Firestore');
-        } catch (error) {
-            console.error('Error saving order to Firestore:', error);
-        }
-    }
-
-    // Make paymentCallback globally available
-    window.paymentCallback = paymentCallback;
+  })();
 </script>
 </body>
 </html>
